@@ -1,8 +1,6 @@
 package com.yasirkhan.user.models.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,5 +27,7 @@ public class Supervisor {
     private String gender;
 
     @OneToOne()
-    private UserProfile profile;
+    @MapsId
+    @JoinColumn(name = "id")
+    private UsersProfile profile;
 }

@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -32,8 +31,8 @@ public class Driver {
 
     private LocalDate licenseExpiry;
 
-    @OneToOne()
+    @OneToOne
     @MapsId
     @JoinColumn(name = "id")
-    private UserProfile profile;
+    private UsersProfile profile;
 }

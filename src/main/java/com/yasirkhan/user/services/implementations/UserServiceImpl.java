@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -32,13 +33,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Object getUserById(String userId, String role) {
+    public Object getUserById(String userId, String username, String role) {
 
-        Map<String, String> request = new HashMap<>();
-        request.put("userId", userId);
-        request.put("role", role);
-
-        return handler.getUserById(request);
+        return handler.getUserById(username, userId, role);
     }
 
-   }
+    @Override
+    public void updateUser(Map<String, Object> updateRequest) {
+        handler.updateUser(updateRequest);
+    }
+
+}

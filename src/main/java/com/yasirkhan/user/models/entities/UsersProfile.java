@@ -16,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class UserProfile {
+public class UsersProfile {
 
     @Id
     private UUID id;
