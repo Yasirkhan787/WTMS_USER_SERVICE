@@ -19,7 +19,7 @@ public class UserController {
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     public ResponseEntity<?> addUser(@RequestBody UserRequest request){
 
         return
@@ -48,9 +48,9 @@ public class UserController {
     @GetMapping("/profile")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','SUPERVISOR','DRIVER')")
     public ResponseEntity<?> getUserById(
-            @RequestHeader String userId,
-            @RequestHeader String username,
-            @RequestHeader String role){
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String role){
 
         return
                 ResponseEntity.ok(userService.getUserById(username, userId, role));

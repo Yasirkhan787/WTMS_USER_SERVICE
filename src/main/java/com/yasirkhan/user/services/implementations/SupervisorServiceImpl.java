@@ -9,6 +9,7 @@ import com.yasirkhan.user.producer.UserEventProducer;
 import com.yasirkhan.user.repositories.SupervisorRepository;
 import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.requests.UserRequest;
+import com.yasirkhan.user.responses.AuthUserResponse;
 import com.yasirkhan.user.responses.SupervisorResponse;
 import com.yasirkhan.user.services.SupervisorService;
 import com.yasirkhan.user.utils.ResponseConversion;
@@ -27,10 +28,13 @@ public class SupervisorServiceImpl implements SupervisorService {
 
     private final UserEventProducer eventProducer;
 
-    public SupervisorServiceImpl(UserProfileRepository profileRepository, SupervisorRepository supervisorRepository, UserEventProducer eventProducer) {
+    private final AuthClientService authClientService;
+
+    public SupervisorServiceImpl(UserProfileRepository profileRepository, SupervisorRepository supervisorRepository, UserEventProducer eventProducer, AuthClientService authClientService) {
         this.profileRepository = profileRepository;
         this.supervisorRepository = supervisorRepository;
         this.eventProducer = eventProducer;
+        this.authClientService = authClientService;
     }
 
 
@@ -38,12 +42,9 @@ public class SupervisorServiceImpl implements SupervisorService {
     @Transactional
     public SupervisorResponse createSupervisor(UserRequest request) {
 
-        /*
-         * TODO: Call to authService and get userID
-         * Body {username, email, password, role, isBlocked}
-         * Response [userId]
-         */
-        UUID userId = UUID.randomUUID();
+        AuthUserResponse response = authClientService.createAuthUser(request);
+        UUID userId = response.getId();
+        Boolean isBlocked = response.getIsBlocked();
 
         UsersProfile supervisorProfile = new UsersProfile();
 
@@ -51,7 +52,7 @@ public class SupervisorServiceImpl implements SupervisorService {
         supervisorProfile.setName(request.getName());
         supervisorProfile.setEmail(request.getEmail());
         supervisorProfile.setPhoneNo(request.getPhoneNo());
-        supervisorProfile.setStatus(request.getIsBlocked()? Status.ACTIVE:Status.BLOCK);
+        supervisorProfile.setStatus(isBlocked?Status.BLOCKED:Status.ACTIVE);
 
         UsersProfile savedUsersProfile
                 = profileRepository.save(supervisorProfile);
@@ -82,7 +83,7 @@ public class SupervisorServiceImpl implements SupervisorService {
     @Transactional
     public void updateSupervisor(Map<String, Object> updateRequest) {
 
-        UUID userId = UUID.fromString((String) updateRequest.get("userId"));
+        UUID userId = UUID.fromString(updateRequest.get("userId").toString());
 
         UsersProfile dbUser =
                 profileRepository
@@ -116,7 +117,7 @@ public class SupervisorServiceImpl implements SupervisorService {
                             eventDto.setUsername((String) value);
                         }
                         case "role" -> {
-                            eventDto.setRole((Role) value);
+                            eventDto.setRole(Role.valueOf(value.toString()));
                         }
                         case "name" -> dbUser.setName((String) value);
                         case "fatherName" -> dbSupervisor.setFatherName((String) value);

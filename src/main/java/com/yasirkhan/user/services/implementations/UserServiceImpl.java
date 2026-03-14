@@ -1,6 +1,9 @@
 package com.yasirkhan.user.services.implementations;
 
 import com.yasirkhan.user.models.entities.Role;
+import com.yasirkhan.user.models.entities.Status;
+import com.yasirkhan.user.models.entities.UsersProfile;
+import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.AdminResponse;
 import com.yasirkhan.user.responses.DriverResponse;
@@ -23,8 +26,11 @@ public class UserServiceImpl implements UserService {
 
     private final ResourceHandler handler;
 
-    public UserServiceImpl(ResourceHandler handler) {
+    private final UserProfileRepository profileRepository;
+
+    public UserServiceImpl(ResourceHandler handler, UserProfileRepository profileRepository) {
         this.handler = handler;
+        this.profileRepository = profileRepository;
     }
 
     @Override
@@ -41,6 +47,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUser(Map<String, Object> updateRequest) {
         handler.updateUser(updateRequest);
+    }
+
+    @Override
+    public void updateUserStatus(UUID userId, Status status) {
+
+        UsersProfile dbUser =
+                profileRepository
+                        .findById(userId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "User Not Found with User ID: " + userId));
+
+        dbUser.setStatus(status);
+
+        profileRepository.saveAndFlush(dbUser);
     }
 
 }

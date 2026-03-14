@@ -8,10 +8,12 @@ import com.yasirkhan.user.producer.UserEventProducer;
 import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.AdminResponse;
+import com.yasirkhan.user.responses.AuthUserResponse;
 import com.yasirkhan.user.services.AdminService;
 import com.yasirkhan.user.utils.ResponseConversion;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 import java.util.UUID;
@@ -23,22 +25,21 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserEventProducer eventProducer;
 
-    public AdminServiceImpl(UserProfileRepository profileRepository, UserEventProducer eventProducer) {
+    private final AuthClientService authClientService;
+
+    public AdminServiceImpl(UserProfileRepository profileRepository, UserEventProducer eventProducer, AuthClientService authClientService) {
         this.profileRepository = profileRepository;
         this.eventProducer = eventProducer;
+        this.authClientService = authClientService;
     }
-
 
     @Override
     @Transactional
     public AdminResponse createAdmin(UserRequest request) {
 
-        /*
-            * TODO: Call to authService and get userID
-            * Body {username, email, password, role, isBlocked}
-            * Response [userId]
-         */
-        UUID userId = UUID.randomUUID();
+        AuthUserResponse response = authClientService.createAuthUser(request);
+        UUID userId = response.getId();
+        Boolean isBlocked = response.getIsBlocked();
 
         UsersProfile adminUser = new UsersProfile();
 
@@ -46,7 +47,7 @@ public class AdminServiceImpl implements AdminService {
         adminUser.setName(request.getName());
         adminUser.setEmail(request.getEmail());
         adminUser.setPhoneNo(request.getPhoneNo());
-        adminUser.setStatus(request.getIsBlocked()?Status.ACTIVE:Status.BLOCK);
+        adminUser.setStatus(isBlocked?Status.BLOCKED:Status.ACTIVE);
 
         UsersProfile savedUser
                 = profileRepository.save(adminUser);
@@ -60,14 +61,11 @@ public class AdminServiceImpl implements AdminService {
                                 savedUser);
     }
 
-    // TODO: IF username update send kafka event
     @Override
     @Transactional
     public void updateAdmin(Map<String, Object> updateRequest) {
 
-        UUID userId = UUID.fromString((String) updateRequest.get("userId"));
-        String username = updateRequest.get("username").toString();
-        String role = updateRequest.get("role").toString();
+        UUID userId = UUID.fromString(updateRequest.get("userId").toString());
 
         UsersProfile dbUser =
                 profileRepository
@@ -78,7 +76,6 @@ public class AdminServiceImpl implements AdminService {
 
         // TODO: Use MapConstruct
         // username, email, role    block and password change (authService ki api use ho gi)
-
         UserUpdateEventDto eventDto =
                 UserUpdateEventDto
                         .builder()
@@ -96,7 +93,7 @@ public class AdminServiceImpl implements AdminService {
                     eventDto.setUsername((String) value);
                 }
                 case "role" -> {
-                    eventDto.setRole((Role) value);
+                    eventDto.setRole(Role.valueOf(value.toString()));
                 }
                 case "name" -> dbUser.setName((String) value);
                 case "phoneNo" -> dbUser.setPhoneNo((String) value);

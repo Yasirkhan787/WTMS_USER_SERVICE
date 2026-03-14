@@ -31,7 +31,7 @@ public class Driver {
 
     private LocalDate licenseExpiry;
 
-    @OneToOne
+    @OneToOne()
     @MapsId
     @JoinColumn(name = "id")
     private UsersProfile profile;

@@ -9,6 +9,7 @@ import com.yasirkhan.user.producer.UserEventProducer;
 import com.yasirkhan.user.repositories.DriverRepository;
 import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.requests.UserRequest;
+import com.yasirkhan.user.responses.AuthUserResponse;
 import com.yasirkhan.user.responses.DriverResponse;
 import com.yasirkhan.user.services.DriverService;
 import com.yasirkhan.user.utils.ResponseConversion;
@@ -28,26 +29,33 @@ public class DriverServiceImpl implements DriverService {
 
     private final UserEventProducer eventProducer;
 
-    public DriverServiceImpl(UserProfileRepository profileRepository, DriverRepository driverRepository, UserEventProducer eventProducer) {
+    private final AuthClientService authClientService;
+
+    public DriverServiceImpl(UserProfileRepository profileRepository, DriverRepository driverRepository, UserEventProducer eventProducer, AuthClientService authClientService) {
         this.profileRepository = profileRepository;
         this.driverRepository = driverRepository;
         this.eventProducer = eventProducer;
+        this.authClientService = authClientService;
     }
 
     @Override
     @Transactional
     public DriverResponse createDriver(UserRequest request) {
 
-        UUID userId = UUID.randomUUID();
+        AuthUserResponse response = authClientService.createAuthUser(request);
+        UUID userId = response.getId();
+        Boolean isBlocked = response.getIsBlocked();
 
         UsersProfile driverProfile = new UsersProfile();
+
         driverProfile.setId(userId);
         driverProfile.setName(request.getName());
         driverProfile.setEmail(request.getEmail());
         driverProfile.setPhoneNo(request.getPhoneNo());
-        driverProfile.setStatus(request.getIsBlocked() ? Status.BLOCK : Status.ACTIVE);
+        driverProfile.setStatus(isBlocked?Status.BLOCKED:Status.ACTIVE);
 
-        UsersProfile savedUsersProfile = profileRepository.save(driverProfile);
+        UsersProfile savedDriverProfile
+                = profileRepository.save(driverProfile);
 
         Driver driver =
                 Driver
@@ -58,7 +66,7 @@ public class DriverServiceImpl implements DriverService {
                         .gender(request.getGender())
                         .licenseNo(request.getLicenseNo())
                         .licenseExpiry(request.getLicenseExpiry())
-                        .profile(savedUsersProfile)
+                        .profile(savedDriverProfile)
                         .build();
 
         Driver savedDriver = driverRepository.save(driver);
@@ -66,7 +74,7 @@ public class DriverServiceImpl implements DriverService {
         return ResponseConversion.toDriverResponse(
                 request.getUsername(),
                 request.getRole().name(),
-                savedUsersProfile,
+                savedDriverProfile,
                 savedDriver
         );
     }
@@ -76,10 +84,7 @@ public class DriverServiceImpl implements DriverService {
     @Transactional
     public void updateDriver(Map<String, Object> updateRequest) {
 
-        UUID userId = UUID.fromString((String) updateRequest.get("userId"));
-        String username = updateRequest.get("username").toString();
-        String role = updateRequest.get("role").toString();
-
+        UUID userId = UUID.fromString(updateRequest.get("userId").toString());
 
         UsersProfile dbUser =
                 profileRepository
@@ -113,7 +118,7 @@ public class DriverServiceImpl implements DriverService {
                             eventDto.setUsername((String) value);
                         }
                         case "role" -> {
-                            eventDto.setRole((Role) value);
+                            eventDto.setRole(Role.valueOf(value.toString()));
                         }
                         case "name" -> dbUser.setName((String) value);
                         case "fatherName" -> dbDriver.setFatherName((String) value);

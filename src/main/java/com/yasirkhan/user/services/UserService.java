@@ -1,5 +1,6 @@
 package com.yasirkhan.user.services;
 
+import com.yasirkhan.user.models.entities.Status;
 import com.yasirkhan.user.requests.UserRequest;
 
 import java.util.Map;
@@ -11,4 +12,6 @@ public interface UserService {
     Object getUserById(String userId, String username, String role);
 
     void updateUser(Map<String, Object> updateRequest);
+
+    void updateUserStatus(UUID userId, Status status);
 }

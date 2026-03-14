@@ -40,8 +40,8 @@ public class ResourceHandler {
         handleUserCreation.put(Role.DRIVER, this::handleDriverCreation);
 
         handleUserUpdation.put(Role.ADMIN, this::handleAdminUpdation);
-        handleUserUpdation.put(Role.SUPERVISOR, this::handleDriverUpdation);
-        handleUserUpdation.put(Role.DRIVER, this::handleSupervisorUpdation);
+        handleUserUpdation.put(Role.SUPERVISOR, this::handleSupervisorUpdation);
+        handleUserUpdation.put(Role.DRIVER, this::handleDriverUpdation);
 
         handleGettingUser.put(Role.ADMIN, this::handleGetAdminUser);
         handleGettingUser.put(Role.SUPERVISOR, this::handleGetDriverUser);
@@ -66,7 +66,7 @@ public class ResourceHandler {
 
     public void updateUser(Map<String, Object> updateRequest) {
 
-        Role role = Role.valueOf((String) updateRequest.get("role"));
+        Role role = Role.valueOf(updateRequest.get("role").toString());
 
         Consumer<Map<String, Object>> updateHandler = handleUserUpdation.get(role);
 
