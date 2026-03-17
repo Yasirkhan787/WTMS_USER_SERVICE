@@ -1,7 +1,5 @@
 package com.yasirkhan.user.responses;
 
-import com.yasirkhan.user.models.entities.Role;
-import com.yasirkhan.user.models.entities.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,16 +9,16 @@ import java.util.UUID;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class AdminResponse {
-
-    private UUID userID;
-    private String username;
-    private Role role;
+@NoArgsConstructor
+public class UserResponse {
+    private UUID id;
     private String name;
     private String email;
     private String phoneNo;
-    private Status status;
-
+    private String role;
+    private String status;
+    private DriverDetails driverDetails;
+    private SupervisorDetails supervisorDetails;
 }
+

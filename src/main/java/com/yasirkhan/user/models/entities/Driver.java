@@ -27,6 +27,8 @@ public class Driver {
 
     private String gender;
 
+    private int age;
+
     private String licenseNo;
 
     private LocalDate licenseExpiry;

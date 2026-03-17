@@ -1,6 +1,6 @@
 package com.yasirkhan.user.producer;
 
-import com.yasirkhan.user.models.dtos.UserUpdateEventDto;
+import com.yasirkhan.user.models.dtos.UserEventDto;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +13,11 @@ public class UserEventProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendUserAuthUpdateEvent(UserUpdateEventDto updateEventDto){
-        kafkaTemplate.send("user-update-topic", updateEventDto);
+    public void sendAuthUserCreateEvent(UserEventDto updateEventDto){
+        kafkaTemplate.send("user-created-topic", updateEventDto);
+    }
+
+    public void sendAuthUserUpdateEvent(UserEventDto updateEventDto){
+        kafkaTemplate.send("user-updated-topic", updateEventDto);
     }
 }

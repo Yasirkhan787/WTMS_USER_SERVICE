@@ -1,6 +1,8 @@
 package com.yasirkhan.user.services.implementations;
 
-import com.yasirkhan.user.models.dtos.UserUpdateEventDto;
+import com.yasirkhan.user.exceptions.DatabaseException;
+import com.yasirkhan.user.exceptions.ResourceNotFoundException;
+import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.entities.Role;
 import com.yasirkhan.user.models.entities.Status;
 import com.yasirkhan.user.models.entities.Supervisor;
@@ -28,34 +30,33 @@ public class SupervisorServiceImpl implements SupervisorService {
 
     private final UserEventProducer eventProducer;
 
-    private final AuthClientService authClientService;
+    public SupervisorServiceImpl(UserProfileRepository profileRepository, SupervisorRepository supervisorRepository,
+                                 UserEventProducer eventProducer) {
 
-    public SupervisorServiceImpl(UserProfileRepository profileRepository, SupervisorRepository supervisorRepository, UserEventProducer eventProducer, AuthClientService authClientService) {
         this.profileRepository = profileRepository;
         this.supervisorRepository = supervisorRepository;
         this.eventProducer = eventProducer;
-        this.authClientService = authClientService;
     }
-
 
     @Override
     @Transactional
     public SupervisorResponse createSupervisor(UserRequest request) {
 
-        AuthUserResponse response = authClientService.createAuthUser(request);
-        UUID userId = response.getId();
-        Boolean isBlocked = response.getIsBlocked();
+        UsersProfile supervisorProfile =
+                new UsersProfile();
 
-        UsersProfile supervisorProfile = new UsersProfile();
-
-        supervisorProfile.setId(userId);
         supervisorProfile.setName(request.getName());
         supervisorProfile.setEmail(request.getEmail());
         supervisorProfile.setPhoneNo(request.getPhoneNo());
-        supervisorProfile.setStatus(isBlocked?Status.BLOCKED:Status.ACTIVE);
+        supervisorProfile.setStatus(request.getIsBlocked()?Status.BLOCKED:Status.PENDING);
 
         UsersProfile savedUsersProfile
-                = profileRepository.save(supervisorProfile);
+                = null;
+        try {
+            savedUsersProfile = profileRepository.save(supervisorProfile);
+        } catch (Exception e) {
+            throw new DatabaseException(e.getMessage());
+        }
 
         Supervisor supervisor =
                 Supervisor
@@ -64,11 +65,31 @@ public class SupervisorServiceImpl implements SupervisorService {
                         .cnic(request.getCnic())
                         .address(request.getAddress())
                         .gender(request.getGender())
+                        .age(request.getAge())
                         .profile(savedUsersProfile)
                         .build();
 
         Supervisor savedSupervisor =
-                supervisorRepository.save(supervisor);
+                null;
+        try {
+            savedSupervisor = supervisorRepository.save(supervisor);
+        } catch (Exception e) {
+            throw new DatabaseException(e.getMessage());
+        }
+
+        // Send Event to Kafka
+        UserEventDto eventDto =
+                UserEventDto
+                        .builder()
+                        .userId(supervisorProfile.getId())
+                        .username(request.getUsername())
+                        .email(supervisorProfile.getEmail())
+                        .password(request.getPassword())
+                        .role(request.getRole())
+                        .isBlocked(request.getIsBlocked())
+                        .build();
+
+        eventProducer.sendAuthUserCreateEvent(eventDto);
 
         return
                 ResponseConversion.toSupervisorResponse(
@@ -78,7 +99,6 @@ public class SupervisorServiceImpl implements SupervisorService {
                         savedSupervisor);
     }
 
-    // TODO: IF username update send kafka event
     @Override
     @Transactional
     public void updateSupervisor(Map<String, Object> updateRequest) {
@@ -89,18 +109,18 @@ public class SupervisorServiceImpl implements SupervisorService {
                 profileRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "User Not Found with User ID: " + userId));
 
         Supervisor dbSupervisor =
                 supervisorRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "Supervisor Not Found with User ID: " + userId));
 
-        UserUpdateEventDto eventDto =
-                UserUpdateEventDto
+        UserEventDto eventDto =
+                UserEventDto
                         .builder()
                         .userId(userId)
                         .build();
@@ -125,7 +145,8 @@ public class SupervisorServiceImpl implements SupervisorService {
                         case "gender" -> dbSupervisor.setGender((String) value);
                         case "phoneNo" -> dbUser.setPhoneNo((String) value);
                         case "address" -> dbSupervisor.setAddress((String) value);
-                       case "status" -> dbUser.setStatus(Status.valueOf((String) value));
+                        case "age" -> dbSupervisor.setAge((int) value);
+                        case "status" -> dbUser.setStatus(Status.valueOf((String) value));
                     }
                 }
         );
@@ -133,7 +154,7 @@ public class SupervisorServiceImpl implements SupervisorService {
         supervisorRepository.save(dbSupervisor);
 
         if (eventDto.getEmail() != null || eventDto.getUsername() != null || eventDto.getRole() != null) {
-            eventProducer.sendUserAuthUpdateEvent(eventDto);
+            eventProducer.sendAuthUserUpdateEvent(eventDto);
         }
     }
 
@@ -148,14 +169,14 @@ public class SupervisorServiceImpl implements SupervisorService {
                 profileRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "User Not Found with User ID: " + userId));
 
         Supervisor dbSupervisor =
                 supervisorRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "Supervisor Not Found with User ID: " + userId));
         return
                 ResponseConversion

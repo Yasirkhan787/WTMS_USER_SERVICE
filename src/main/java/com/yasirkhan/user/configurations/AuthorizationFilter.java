@@ -35,7 +35,6 @@ public class AuthorizationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 1. Validate the Gateway Secret first
         String incomingSecret = request.getHeader("X-Gateway-Secret");
 
         if (incomingSecret == null || !incomingSecret.equals(GATEWAY_SECRET)) {
@@ -43,8 +42,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
             response.getWriter().write("Direct access blocked: Request must come through API Gateway");
             return; // STOP: Do not call filterChain.doFilter
         }
-
-        // 2. If secret is valid, proceed with your existing Header logic
+        
         String username = request.getHeader("X-Username");
         String role = request.getHeader("X-User-Role");
 

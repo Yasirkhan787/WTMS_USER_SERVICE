@@ -1,11 +1,14 @@
 package com.yasirkhan.user.controllers;
 
 import com.yasirkhan.user.requests.UserRequest;
+import com.yasirkhan.user.responses.UserResponse;
 import com.yasirkhan.user.services.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -39,14 +42,8 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getAllUser(){
-        return null;
-    }
-
     @GetMapping("/profile")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','SUPERVISOR','DRIVER')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPERVISOR','DRIVER')")
     public ResponseEntity<?> getUserById(
             @RequestHeader("X-User-Id") String userId,
             @RequestHeader("X-Username") String username,
@@ -54,5 +51,20 @@ public class UserController {
 
         return
                 ResponseEntity.ok(userService.getUserById(username, userId, role));
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserResponse>> getAllUser(){
+        return
+                ResponseEntity.ok(userService.getAllUser());
+    }
+
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable String id){
+        return
+                ResponseEntity.ok(userService.getUserById(id));
     }
 }

@@ -4,7 +4,6 @@ import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.SupervisorResponse;
 
 import java.util.Map;
-import java.util.UUID;
 
 public interface SupervisorService {
     SupervisorResponse createSupervisor(UserRequest request);

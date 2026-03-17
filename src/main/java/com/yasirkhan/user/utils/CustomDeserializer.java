@@ -2,8 +2,7 @@ package com.yasirkhan.user.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.yasirkhan.user.models.dtos.UserStatusUpdateEventDto;
-import com.yasirkhan.user.models.dtos.UserUpdateEventDto;
+import com.yasirkhan.user.models.dtos.AuthUserResponseEvent;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -21,7 +20,7 @@ public class CustomDeserializer implements Deserializer<Object> {
         try {
             if (data == null) return null;
 
-            return objectMapper.readValue(data, UserStatusUpdateEventDto.class);
+            return objectMapper.readValue(data, AuthUserResponseEvent.class);
         } catch (Exception e) {
             throw new SerializationException("Error deserializing message", e);
         }

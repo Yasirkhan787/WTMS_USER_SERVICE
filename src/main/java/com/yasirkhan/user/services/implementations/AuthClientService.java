@@ -7,8 +7,6 @@ import com.yasirkhan.user.services.AuthServiceClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 public class AuthClientService {
 

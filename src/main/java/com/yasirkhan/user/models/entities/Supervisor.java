@@ -22,6 +22,8 @@ public class Supervisor {
 
     private String cnic;
 
+    private int age;
+
     private String address;
 
     private String gender;

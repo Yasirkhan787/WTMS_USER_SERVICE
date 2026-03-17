@@ -3,5 +3,8 @@ package com.yasirkhan.user.models.entities;
 public enum Status {
 
     ACTIVE,
-    BLOCKED;
+    PENDING,
+    BLOCKED,
+    ON_LEAVE,
+    ON_ROUTE;
 }

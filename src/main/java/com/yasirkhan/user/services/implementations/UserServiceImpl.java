@@ -1,25 +1,20 @@
 package com.yasirkhan.user.services.implementations;
 
-import com.yasirkhan.user.models.entities.Role;
+import com.yasirkhan.user.exceptions.ResourceNotFoundException;
 import com.yasirkhan.user.models.entities.Status;
 import com.yasirkhan.user.models.entities.UsersProfile;
 import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.requests.UserRequest;
-import com.yasirkhan.user.responses.AdminResponse;
-import com.yasirkhan.user.responses.DriverResponse;
-import com.yasirkhan.user.responses.SupervisorResponse;
-import com.yasirkhan.user.services.AdminService;
-import com.yasirkhan.user.services.DriverService;
-import com.yasirkhan.user.services.SupervisorService;
+import com.yasirkhan.user.responses.UserResponse;
 import com.yasirkhan.user.services.UserService;
 import com.yasirkhan.user.utils.ResourceHandler;
+import com.yasirkhan.user.utils.ResponseConversion;
 import org.springframework.stereotype.Service;
 
-import java.util.EnumMap;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -56,7 +51,7 @@ public class UserServiceImpl implements UserService {
                 profileRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "User Not Found with User ID: " + userId));
 
         dbUser.setStatus(status);
@@ -64,4 +59,30 @@ public class UserServiceImpl implements UserService {
         profileRepository.saveAndFlush(dbUser);
     }
 
+    @Override
+    public UserResponse getUserById(String userId) {
+
+        UUID userID = UUID.fromString(userId);
+        UsersProfile usersProfile =
+                profileRepository.findProfileWithDetails(userID)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "User Not Found with User ID: " + userId));
+
+        return ResponseConversion.toUserResponse(usersProfile);
+    }
+
+    @Override
+    public List<UserResponse> getAllUser() {
+
+        List<UsersProfile> users = profileRepository
+                .findAllProfileWithDetails()
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("No User Found in Database"));
+
+        return users
+                .stream()
+                .map(ResponseConversion::toUserResponse)
+                .collect(Collectors.toList());
+    }
 }

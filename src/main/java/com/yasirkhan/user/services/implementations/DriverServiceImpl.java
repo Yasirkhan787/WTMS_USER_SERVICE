@@ -1,6 +1,8 @@
 package com.yasirkhan.user.services.implementations;
 
-import com.yasirkhan.user.models.dtos.UserUpdateEventDto;
+import com.yasirkhan.user.exceptions.DatabaseException;
+import com.yasirkhan.user.exceptions.ResourceNotFoundException;
+import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.entities.Driver;
 import com.yasirkhan.user.models.entities.Role;
 import com.yasirkhan.user.models.entities.Status;
@@ -29,33 +31,31 @@ public class DriverServiceImpl implements DriverService {
 
     private final UserEventProducer eventProducer;
 
-    private final AuthClientService authClientService;
 
-    public DriverServiceImpl(UserProfileRepository profileRepository, DriverRepository driverRepository, UserEventProducer eventProducer, AuthClientService authClientService) {
+    public DriverServiceImpl(UserProfileRepository profileRepository, DriverRepository driverRepository, UserEventProducer eventProducer) {
         this.profileRepository = profileRepository;
         this.driverRepository = driverRepository;
         this.eventProducer = eventProducer;
-        this.authClientService = authClientService;
     }
 
     @Override
     @Transactional
     public DriverResponse createDriver(UserRequest request) {
 
-        AuthUserResponse response = authClientService.createAuthUser(request);
-        UUID userId = response.getId();
-        Boolean isBlocked = response.getIsBlocked();
-
         UsersProfile driverProfile = new UsersProfile();
 
-        driverProfile.setId(userId);
         driverProfile.setName(request.getName());
         driverProfile.setEmail(request.getEmail());
         driverProfile.setPhoneNo(request.getPhoneNo());
-        driverProfile.setStatus(isBlocked?Status.BLOCKED:Status.ACTIVE);
+        driverProfile.setStatus(request.getIsBlocked()?Status.BLOCKED:Status.PENDING);
 
         UsersProfile savedDriverProfile
-                = profileRepository.save(driverProfile);
+                = null;
+        try {
+            savedDriverProfile = profileRepository.save(driverProfile);
+        } catch (Exception e) {
+            throw new DatabaseException(e.getMessage());
+        }
 
         Driver driver =
                 Driver
@@ -64,12 +64,33 @@ public class DriverServiceImpl implements DriverService {
                         .cnic(request.getCnic())
                         .address(request.getAddress())
                         .gender(request.getGender())
+                        .age(request.getAge())
                         .licenseNo(request.getLicenseNo())
                         .licenseExpiry(request.getLicenseExpiry())
                         .profile(savedDriverProfile)
                         .build();
 
-        Driver savedDriver = driverRepository.save(driver);
+        Driver savedDriver =
+                null;
+        try {
+            savedDriver = driverRepository.save(driver);
+        } catch (Exception e) {
+            throw new DatabaseException(e.getMessage());
+        }
+
+        // Send Event to Kafka
+        UserEventDto eventDto =
+                UserEventDto
+                        .builder()
+                        .userId(driverProfile.getId())
+                        .username(request.getUsername())
+                        .email(driverProfile.getEmail())
+                        .password(request.getPassword())
+                        .role(request.getRole())
+                        .isBlocked(request.getIsBlocked())
+                        .build();
+
+        eventProducer.sendAuthUserCreateEvent(eventDto);
 
         return ResponseConversion.toDriverResponse(
                 request.getUsername(),
@@ -79,7 +100,6 @@ public class DriverServiceImpl implements DriverService {
         );
     }
 
-    // TODO: IF username update send kafka event
     @Override
     @Transactional
     public void updateDriver(Map<String, Object> updateRequest) {
@@ -90,18 +110,18 @@ public class DriverServiceImpl implements DriverService {
                 profileRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "User Not Found with User ID: " + userId));
 
         Driver dbDriver =
                 driverRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "Driver Not Found with User ID: " + userId));
 
-        UserUpdateEventDto eventDto =
-                UserUpdateEventDto
+        UserEventDto eventDto =
+                UserEventDto
                         .builder()
                         .userId(userId)
                         .build();
@@ -126,6 +146,7 @@ public class DriverServiceImpl implements DriverService {
                         case "gender" -> dbDriver.setGender((String) value);
                         case "phoneNo" -> dbUser.setPhoneNo((String) value);
                         case "address" -> dbDriver.setAddress((String) value);
+                        case "age" -> dbDriver.setAge((int) value);
                         case "licenseNo" -> dbDriver.setLicenseNo((String) value);
                         case "licenseExpiry" -> dbDriver.setLicenseExpiry(LocalDate.parse((String) value));
                         case "status" -> dbUser.setStatus(Status.valueOf((String) value));
@@ -136,7 +157,7 @@ public class DriverServiceImpl implements DriverService {
         driverRepository.save(dbDriver);
 
         if (eventDto.getEmail() != null || eventDto.getUsername() != null || eventDto.getRole() != null) {
-            eventProducer.sendUserAuthUpdateEvent(eventDto);
+            eventProducer.sendAuthUserUpdateEvent(eventDto);
         }
     }
 
@@ -152,14 +173,14 @@ public class DriverServiceImpl implements DriverService {
                 profileRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "User Not Found with User ID: " + userId));
 
         Driver dbDriver =
                 driverRepository
                         .findById(userId)
                         .orElseThrow(
-                                () -> new RuntimeException(
+                                () -> new ResourceNotFoundException(
                                         "Driver Not Found with User ID: " + userId));
         return
                 ResponseConversion
