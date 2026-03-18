@@ -65,7 +65,7 @@ public class SupervisorServiceImpl implements SupervisorService {
                         .cnic(request.getCnic())
                         .address(request.getAddress())
                         .gender(request.getGender())
-                        .age(request.getAge())
+                        .age(request.getAge()) // change to DOB
                         .profile(savedUsersProfile)
                         .build();
 

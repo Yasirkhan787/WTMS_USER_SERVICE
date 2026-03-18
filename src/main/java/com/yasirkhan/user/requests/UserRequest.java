@@ -36,7 +36,7 @@ public class UserRequest {
 
     private String gender;
 
-    private int age;
+    private Integer age;
 
     private String licenseNo;
 

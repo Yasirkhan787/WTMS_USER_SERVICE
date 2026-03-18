@@ -35,7 +35,9 @@ public class UserEventConsumer {
     }
 
     @KafkaListener(
-            topics = "user-response-topic"
+            topics = "user-response-topic",
+            groupId = "user-group",
+            containerFactory = "listenerContainerFactory"
     )
     @Transactional
     public void handleAuthResponse(AuthUserResponseEvent event) {

@@ -64,7 +64,7 @@ public class DriverServiceImpl implements DriverService {
                         .cnic(request.getCnic())
                         .address(request.getAddress())
                         .gender(request.getGender())
-                        .age(request.getAge())
+                        .age(request.getAge()) // change to DOB
                         .licenseNo(request.getLicenseNo())
                         .licenseExpiry(request.getLicenseExpiry())
                         .profile(savedDriverProfile)

@@ -43,6 +43,7 @@ public class ResponseConversion {
                         .cnic(savedSupervisor.getCnic())
                         .gender(savedSupervisor.getGender())
                         .address(savedSupervisor.getAddress())
+                        //.dob(savedSupervisor.getDob)
                         .phoneNo(savedUsersProfile.getPhoneNo())
                         .status(savedUsersProfile.getStatus().name())
                         .build();
@@ -67,6 +68,7 @@ public class ResponseConversion {
                         .gender(savedDriver.getGender())
                         .address(savedDriver.getAddress())
                         .phoneNo(savedUsersProfile.getPhoneNo())
+                        //.dob(savedDriver.getDob)
                         .licenseNo(savedDriver.getLicenseNo())
                         .licenseExpiry(savedDriver.getLicenseExpiry())
                         .status(savedUsersProfile.getStatus().name())
