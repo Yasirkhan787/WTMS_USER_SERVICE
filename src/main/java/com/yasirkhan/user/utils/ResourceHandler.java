@@ -44,8 +44,8 @@ public class ResourceHandler {
         handleUserUpdation.put(Role.DRIVER, this::handleDriverUpdation);
 
         handleGettingUser.put(Role.ADMIN, this::handleGetAdminUser);
-        handleGettingUser.put(Role.SUPERVISOR, this::handleGetDriverUser);
-        handleGettingUser.put(Role.DRIVER, this::handleGetSupervisorUser);
+        handleGettingUser.put(Role.SUPERVISOR, this::handleGetSupervisorUser);
+        handleGettingUser.put(Role.DRIVER, this::handleGetDriverUser);
 
         this.adminService = adminService;
         this.supervisorService = supervisorService;
