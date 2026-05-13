@@ -55,7 +55,7 @@ public class SupervisorServiceImpl implements SupervisorService {
                     .cnic(request.getCnic())
                     .address(request.getAddress())
                     .gender(request.getGender())
-                    .age(request.getAge()) // change to DOB
+                    .dob(request.getDob())
                     .profile(supervisorProfile)
                     .build();
 
@@ -100,7 +100,7 @@ public class SupervisorServiceImpl implements SupervisorService {
         if (updateRequest.getCnic() != null) dbSupervisor.setCnic(updateRequest.getCnic());
         if (updateRequest.getGender() != null) dbSupervisor.setGender(updateRequest.getGender());
         if (updateRequest.getAddress() != null) dbSupervisor.setAddress(updateRequest.getAddress());
-        if (updateRequest.getAge() != null) dbSupervisor.setAge(updateRequest.getAge());
+        if (updateRequest.getDob() != null) dbSupervisor.setDob(updateRequest.getDob());
 
         supervisorRepository.save(dbSupervisor);
         profileRepository.save(dbUser);

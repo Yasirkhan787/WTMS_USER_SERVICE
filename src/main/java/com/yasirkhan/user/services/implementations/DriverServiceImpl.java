@@ -55,7 +55,7 @@ public class DriverServiceImpl implements DriverService {
                     .cnic(request.getCnic())
                     .address(request.getAddress())
                     .gender(request.getGender())
-                    .age(request.getAge()) // change to DOB
+                    .dob(request.getDob())
                     .licenseNo(request.getLicenseNo())
                     .licenseExpiry(request.getLicenseExpiry())
                     .profile(driverProfile)
@@ -103,7 +103,7 @@ public class DriverServiceImpl implements DriverService {
         if (updateRequest.getCnic() != null) dbDriver.setCnic(updateRequest.getCnic());
         if (updateRequest.getGender() != null) dbDriver.setGender(updateRequest.getGender());
         if (updateRequest.getAddress() != null) dbDriver.setAddress(updateRequest.getAddress());
-        if (updateRequest.getAge() != null) dbDriver.setAge(updateRequest.getAge());
+        if (updateRequest.getDob() != null) dbDriver.setDob(updateRequest.getDob());
         if (updateRequest.getLicenseNo() != null) dbDriver.setLicenseNo(updateRequest.getLicenseNo());
         if (updateRequest.getLicenseExpiry() != null) dbDriver.setLicenseExpiry(updateRequest.getLicenseExpiry());
 

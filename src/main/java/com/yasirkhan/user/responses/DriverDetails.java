@@ -3,7 +3,9 @@ package com.yasirkhan.user.responses;
 import lombok.Builder;
 import lombok.Data;
 
-// These DTOs capture the detailed fields from your Relational Models [cite: 2566, 2567]
+import java.time.LocalDate;
+
+// These DTOs capture the detailed fields from your Relational Models
 @Data
 @Builder
 public class DriverDetails {
@@ -11,7 +13,7 @@ public class DriverDetails {
     private String cnic;
     private String licenseNumber;
     private String licenseExpiry;
-    private Integer age;
+    private LocalDate dob;
     private String gender;
     private String address;
 }

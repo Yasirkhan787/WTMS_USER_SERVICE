@@ -43,7 +43,7 @@ public class ResponseConversion {
                         .cnic(savedSupervisor.getCnic())
                         .gender(savedSupervisor.getGender())
                         .address(savedSupervisor.getAddress())
-                        //.dob(savedSupervisor.getDob)
+                        .dob(savedSupervisor.getDob())
                         .phoneNo(savedUsersProfile.getPhoneNo())
                         .status(savedUsersProfile.getStatus().name())
                         .build();
@@ -68,7 +68,7 @@ public class ResponseConversion {
                         .gender(savedDriver.getGender())
                         .address(savedDriver.getAddress())
                         .phoneNo(savedUsersProfile.getPhoneNo())
-                        //.dob(savedDriver.getDob)
+                        .dob(savedDriver.getDob())
                         .licenseNo(savedDriver.getLicenseNo())
                         .licenseExpiry(savedDriver.getLicenseExpiry())
                         .status(savedUsersProfile.getStatus().name())
@@ -90,7 +90,7 @@ public class ResponseConversion {
                     .cnic(profile.getDriver().getCnic())
                     .licenseNumber(profile.getDriver().getLicenseNo())
                     .licenseExpiry(profile.getDriver().getLicenseExpiry().toString())
-                    .age(profile.getDriver().getAge())
+                    .dob(profile.getDriver().getDob())
                     .gender(profile.getDriver().getGender())
                     .address(profile.getDriver().getAddress())
                     .build());
@@ -100,6 +100,7 @@ public class ResponseConversion {
                     .fatherName(profile.getSupervisor().getFatherName())
                     .cnic(profile.getSupervisor().getCnic())
                     .gender(profile.getSupervisor().getGender())
+                    .dob(profile.getSupervisor().getDob())
                     .address(profile.getSupervisor().getAddress())
                     .build());
         } else {

@@ -1,6 +1,5 @@
 package com.yasirkhan.user.consumer;
 
-import com.yasirkhan.user.models.dtos.AuthUserResponseEvent;
 import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.dtos.UserStatusEventDto;
 import com.yasirkhan.user.models.entities.Status;
@@ -11,7 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j // Recommended for logging rollbacks
+@Slf4j
 public class UserEventConsumer {
 
     private final UserService userService;

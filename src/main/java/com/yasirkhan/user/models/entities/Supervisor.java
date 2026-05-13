@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -22,7 +23,7 @@ public class Supervisor {
 
     private String cnic;
 
-    private int age;
+    private LocalDate dob;
 
     private String address;
 

@@ -1,15 +1,12 @@
 package com.yasirkhan.user.controllers;
 
-import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.UserResponse;
 import com.yasirkhan.user.services.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/user")

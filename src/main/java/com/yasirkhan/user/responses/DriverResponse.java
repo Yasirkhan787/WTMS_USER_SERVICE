@@ -24,7 +24,7 @@ public class DriverResponse {
     private String phoneNo;
     private String address;
     private String gender;
-    private int age;
+    private LocalDate dob;
     private String licenseNo;
     private LocalDate licenseExpiry;
     private String status;

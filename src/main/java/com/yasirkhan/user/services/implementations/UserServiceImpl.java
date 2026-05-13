@@ -5,7 +5,6 @@ import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.entities.Status;
 import com.yasirkhan.user.models.entities.UsersProfile;
 import com.yasirkhan.user.repositories.UserProfileRepository;
-import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.UserResponse;
 import com.yasirkhan.user.services.UserService;
 import com.yasirkhan.user.utils.ResourceHandler;
@@ -13,7 +12,6 @@ import com.yasirkhan.user.utils.ResponseConversion;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 

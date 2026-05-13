@@ -2,12 +2,9 @@ package com.yasirkhan.user.services;
 
 import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.entities.Status;
-import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.UserResponse;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public interface UserService {
