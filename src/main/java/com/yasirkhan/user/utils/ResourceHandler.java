@@ -1,7 +1,7 @@
 package com.yasirkhan.user.utils;
 
+import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.entities.Role;
-import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.AdminResponse;
 import com.yasirkhan.user.responses.DriverResponse;
 import com.yasirkhan.user.responses.SupervisorResponse;
@@ -19,19 +19,14 @@ import java.util.function.Function;
 @Component
 public class ResourceHandler {
 
-    private final Map<Role, Function<UserRequest, Object>> handleUserCreation =
-            new EnumMap<>(Role.class);
+    private final Map<Role, Consumer<UserEventDto>> handleUserCreation = new EnumMap<>(Role.class);
 
-    private final Map<Role, Consumer<Map<String, Object>>> handleUserUpdation =
-            new EnumMap<>(Role.class);
+    private final Map<Role, Consumer<UserEventDto>> handleUserUpdation = new EnumMap<>(Role.class);
 
-    private final Map<Role, Function<Map<String, Object>, Object>> handleGettingUser =
-            new EnumMap<>(Role.class);
+    private final Map<Role, Function<Map<String, Object>, Object>> handleGettingUser = new EnumMap<>(Role.class);
 
     private final AdminService adminService;
-
     private final SupervisorService supervisorService;
-
     private final DriverService driverService;
 
     public ResourceHandler(AdminService adminService, SupervisorService supervisorService, DriverService driverService){
@@ -52,23 +47,22 @@ public class ResourceHandler {
         this.driverService = driverService;
     }
 
-    public Object addUser(UserRequest addRequest) {
+    public void addUser(UserEventDto addRequest) {
 
-        Function<UserRequest, Object>  handler =
-                handleUserCreation.get(addRequest.getRole());
+        Consumer<UserEventDto> handler = handleUserCreation.get(addRequest.getRole());
 
         if (handler == null){
             throw new RuntimeException("Invalid Role: " + addRequest.getRole());
         }
 
-        return handler.apply(addRequest);
+        handler.accept(addRequest);
     }
 
-    public void updateUser(Map<String, Object> updateRequest) {
+    public void updateUser(UserEventDto updateRequest) {
 
-        Role role = Role.valueOf(updateRequest.get("role").toString());
+        Role role = updateRequest.getRole();
 
-        Consumer<Map<String, Object>> updateHandler = handleUserUpdation.get(role);
+        Consumer<UserEventDto> updateHandler = handleUserUpdation.get(role);
 
         if (updateHandler == null){
             throw new RuntimeException("Invalid Role: " + role.name());
@@ -96,38 +90,32 @@ public class ResourceHandler {
         return handler.apply(getRequest);
     }
 
-    private AdminResponse handleAdminCreation(UserRequest addRequest){
-        return adminService.createAdmin(addRequest);
+    private void handleAdminCreation(UserEventDto addRequest){
+        adminService.createAdmin(addRequest);
+    }
+    private void handleSupervisorCreation(UserEventDto addRequest){
+        supervisorService.createSupervisor(addRequest);
+    }
+    private void handleDriverCreation(UserEventDto addRequest){
+        driverService.createDriver(addRequest);
     }
 
-    private SupervisorResponse handleSupervisorCreation(UserRequest addRequest){
-        return supervisorService.createSupervisor(addRequest);
-    }
-
-    private DriverResponse handleDriverCreation(UserRequest addRequest){
-        return driverService.createDriver(addRequest);
-    }
-
-    private void handleAdminUpdation(Map<String, Object> updateRequest) {
+    private void handleAdminUpdation(UserEventDto updateRequest) {
         adminService.updateAdmin(updateRequest);
     }
-
-    private void handleSupervisorUpdation(Map<String, Object> updateRequest) {
+    private void handleSupervisorUpdation(UserEventDto updateRequest) {
         supervisorService.updateSupervisor(updateRequest);
     }
-
-    private void handleDriverUpdation(Map<String, Object> updateRequest) {
+    private void handleDriverUpdation(UserEventDto updateRequest) {
         driverService.updateDriver(updateRequest);
     }
 
     private AdminResponse handleGetAdminUser(Map<String, Object> getRequest){
         return adminService.getUserById(getRequest);
     }
-
     private SupervisorResponse handleGetSupervisorUser(Map<String, Object> getRequest){
         return supervisorService.getUserById(getRequest);
     }
-
     private DriverResponse handleGetDriverUser(Map<String, Object> getRequest){
         return driverService.getUserById(getRequest);
     }

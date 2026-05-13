@@ -3,12 +3,12 @@ package com.yasirkhan.user.services.implementations;
 import com.yasirkhan.user.exceptions.DatabaseException;
 import com.yasirkhan.user.exceptions.ResourceNotFoundException;
 import com.yasirkhan.user.models.dtos.UserEventDto;
+import com.yasirkhan.user.models.dtos.UserStatusEventDto;
 import com.yasirkhan.user.models.entities.Role;
 import com.yasirkhan.user.models.entities.Status;
 import com.yasirkhan.user.models.entities.UsersProfile;
 import com.yasirkhan.user.producer.UserEventProducer;
 import com.yasirkhan.user.repositories.UserProfileRepository;
-import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.AdminResponse;
 import com.yasirkhan.user.services.AdminService;
 import com.yasirkhan.user.utils.ResponseConversion;
@@ -22,9 +22,7 @@ import java.util.UUID;
 public class AdminServiceImpl implements AdminService {
 
     private final UserProfileRepository profileRepository;
-
     private final UserEventProducer eventProducer;
-
 
     public AdminServiceImpl(UserProfileRepository profileRepository, UserEventProducer eventProducer) {
         this.profileRepository = profileRepository;
@@ -33,88 +31,56 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public AdminResponse createAdmin(UserRequest request) {
+    public void createAdmin(UserEventDto request) {
 
-        UsersProfile adminUser =
-                new UsersProfile();
+        UsersProfile adminUser = new UsersProfile();
+
+        adminUser.setId(request.getUserId());
         adminUser.setName(request.getName());
         adminUser.setEmail(request.getEmail());
         adminUser.setPhoneNo(request.getPhoneNo());
-        adminUser.setStatus(request.getIsBlocked()?Status.BLOCKED:Status.PENDING);
-        UsersProfile savedUser
-                = null;
+        adminUser.setStatus(Status.ACTIVE);
+
+        UsersProfile savedUser;
+
         try {
-            savedUser = profileRepository.save(adminUser);
+            savedUser = profileRepository.saveAndFlush(adminUser);
+
+            UserStatusEventDto successEvent = UserStatusEventDto.builder()
+                    .userId(request.getUserId())
+                    .status("SUCCESS")
+                    .build();
+
+            eventProducer.sendUserCreatedStatusEvent(successEvent);
+
         } catch (Exception e) {
-            throw new DatabaseException(e.getMessage());
+
+            UserStatusEventDto failureEvent = UserStatusEventDto.builder()
+                    .userId(request.getUserId())
+                    .status("FAILURE")
+                    .build();
+
+            eventProducer.sendUserCreatedStatusEvent(failureEvent);
+
+            throw new DatabaseException("Failed to save Admin Profile. Initiated Rollback. Error: " + e.getMessage());
         }
-
-        // Send Event to Kafka
-        UserEventDto eventDto =
-                UserEventDto
-                        .builder()
-                        .userId(savedUser.getId())
-                        .username(request.getUsername())
-                        .email(savedUser.getEmail())
-                        .password(request.getPassword())
-                        .role(request.getRole())
-                        .isBlocked(request.getIsBlocked())
-                        .build();
-
-        eventProducer.sendAuthUserCreateEvent(eventDto);
-
-        return
-                ResponseConversion
-                        .toAdminResponse(
-                                request.getUsername(),
-                                request.getRole().name(),
-                                savedUser);
     }
 
     @Override
     @Transactional
-    public void updateAdmin(Map<String, Object> updateRequest) {
+    public void updateAdmin(UserEventDto updateRequest) {
 
-        UUID userId = UUID.fromString(updateRequest.get("userId").toString());
+        UUID userId = updateRequest.getUserId();
 
-        UsersProfile dbUser =
-                profileRepository
-                        .findById(userId)
-                        .orElseThrow(
-                                () -> new ResourceNotFoundException(
-                                        "User Not Found with User ID: " + userId));
+        UsersProfile dbUser = profileRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found with User ID: " + userId));
 
-        /* TODO: Use MapConstruct */
-        UserEventDto eventDto =
-                UserEventDto
-                        .builder()
-                        .userId(userId)
-                        .build();
-
-        updateRequest.forEach((key, value) ->
-        {
-            switch (key){
-                case "email" -> {
-                    dbUser.setEmail((String) value);
-                    eventDto.setEmail((String) value);
-                }
-                case "username" -> {
-                    eventDto.setUsername((String) value);
-                }
-                case "role" -> {
-                    eventDto.setRole(Role.valueOf(value.toString()));
-                }
-                case "name" -> dbUser.setName((String) value);
-                case "phoneNo" -> dbUser.setPhoneNo((String) value);
-                case "status" -> dbUser.setStatus(Status.valueOf((String) value));
-            }
-        });
+        if (updateRequest.getEmail() != null) dbUser.setEmail(updateRequest.getEmail());
+        if (updateRequest.getName() != null) dbUser.setName(updateRequest.getName());
+        if (updateRequest.getPhoneNo() != null) dbUser.setPhoneNo(updateRequest.getPhoneNo());
+        if (updateRequest.getStatus() != null) dbUser.setStatus(Status.valueOf(updateRequest.getStatus()));
 
         profileRepository.save(dbUser);
-
-        if (eventDto.getEmail() != null || eventDto.getUsername() != null || eventDto.getRole() != null) {
-            eventProducer.sendAuthUserUpdateEvent(eventDto);
-        }
     }
 
     @Override
@@ -124,13 +90,9 @@ public class AdminServiceImpl implements AdminService {
         String username = getRequest.get("username").toString();
         String role = getRequest.get("role").toString();
 
-        UsersProfile dbUser =
-                profileRepository
-                        .findById(userId)
-                        .orElseThrow(
-                                () -> new ResourceNotFoundException(
-                                        "User Not Found with User ID: " + userId));
-        return ResponseConversion.toAdminResponse(username,role,dbUser);
-    }
+        UsersProfile dbUser = profileRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found with User ID: " + userId));
 
+        return ResponseConversion.toAdminResponse(username, role, dbUser);
+    }
 }

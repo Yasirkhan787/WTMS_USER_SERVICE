@@ -1,14 +1,15 @@
 package com.yasirkhan.user.services;
 
+import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.requests.UserRequest;
 import com.yasirkhan.user.responses.SupervisorResponse;
 
 import java.util.Map;
 
 public interface SupervisorService {
-    SupervisorResponse createSupervisor(UserRequest request);
+    void createSupervisor(UserEventDto request);
 
     SupervisorResponse getUserById(Map<String, Object> getRequest);
 
-    void updateSupervisor(Map<String, Object> updateRequest);
+    void updateSupervisor(UserEventDto updateRequest);
 }

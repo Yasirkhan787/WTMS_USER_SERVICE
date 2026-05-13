@@ -1,6 +1,6 @@
 package com.yasirkhan.user.producer;
 
-import com.yasirkhan.user.models.dtos.UserEventDto;
+import com.yasirkhan.user.models.dtos.UserStatusEventDto;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +13,11 @@ public class UserEventProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendAuthUserCreateEvent(UserEventDto updateEventDto){
-        kafkaTemplate.send("user-created-topic", updateEventDto);
-    }
-
-    public void sendAuthUserUpdateEvent(UserEventDto updateEventDto){
-        kafkaTemplate.send("user-updated-topic", updateEventDto);
+    public void sendUserCreatedStatusEvent(UserStatusEventDto event) {
+        try {
+            kafkaTemplate.send("user-response-topic", event);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send status event", e);
+        }
     }
 }

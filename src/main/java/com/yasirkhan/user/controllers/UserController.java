@@ -21,27 +21,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/add")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
-    public ResponseEntity<?> addUser(@RequestBody UserRequest request){
-
-        return
-                ResponseEntity.ok(userService.addUser(request));
-    }
-
-    /*
-        * Body: Must Add userId and role in Request Body
-     */
-    @PatchMapping("/update")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> updateUser(
-        @RequestBody Map<String, Object> updateRequest){
-
-        userService.updateUser(updateRequest);
-
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/profile")
     @PreAuthorize("hasAnyRole('ADMIN','SUPERVISOR','DRIVER')")
     public ResponseEntity<?> getUserById(

@@ -1,6 +1,7 @@
 package com.yasirkhan.user.services.implementations;
 
 import com.yasirkhan.user.exceptions.ResourceNotFoundException;
+import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.entities.Status;
 import com.yasirkhan.user.models.entities.UsersProfile;
 import com.yasirkhan.user.repositories.UserProfileRepository;
@@ -29,8 +30,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Object addUser(UserRequest request) {
-        return handler.addUser(request);
+    public void addUser(UserEventDto request) {
+        handler.addUser(request);
     }
 
     @Override
@@ -40,7 +41,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(Map<String, Object> updateRequest) {
+    public void updateUser(UserEventDto updateRequest) {
         handler.updateUser(updateRequest);
     }
 

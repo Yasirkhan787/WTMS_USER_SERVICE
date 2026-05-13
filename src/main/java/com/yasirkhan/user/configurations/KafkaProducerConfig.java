@@ -24,13 +24,8 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public NewTopic createUserCreatedTopic(){
-        return new NewTopic("user-created-topic", 2, (short) 1);
-    }
-
-    @Bean
-    public NewTopic createUserUpdatedTopic(){
-        return new NewTopic("user-updated-topic", 2, (short) 1);
+    public NewTopic createUserResponseStatusTopic(){
+        return new NewTopic("user-response-topic", 2, (short) 1);
     }
 
     @Bean
