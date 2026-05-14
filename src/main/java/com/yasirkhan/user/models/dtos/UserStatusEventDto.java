@@ -14,6 +14,7 @@ import java.util.UUID;
 public class UserStatusEventDto {
 
     private UUID userId;
-    private String status;
+    private String status; // SUCCESS, FAILURE
+    private String type; // CREATE , UPDATE
 
 }

@@ -49,6 +49,7 @@ public class AdminServiceImpl implements AdminService {
             UserStatusEventDto successEvent = UserStatusEventDto.builder()
                     .userId(request.getUserId())
                     .status("SUCCESS")
+                    .type("CREATE")
                     .build();
 
             eventProducer.sendUserCreatedStatusEvent(successEvent);
@@ -58,6 +59,7 @@ public class AdminServiceImpl implements AdminService {
             UserStatusEventDto failureEvent = UserStatusEventDto.builder()
                     .userId(request.getUserId())
                     .status("FAILURE")
+                    .type("CREATE")
                     .build();
 
             eventProducer.sendUserCreatedStatusEvent(failureEvent);
