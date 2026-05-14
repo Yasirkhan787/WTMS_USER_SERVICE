@@ -4,7 +4,6 @@ import com.yasirkhan.user.exceptions.DatabaseException;
 import com.yasirkhan.user.exceptions.ResourceNotFoundException;
 import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.dtos.UserStatusEventDto;
-import com.yasirkhan.user.models.entities.Role;
 import com.yasirkhan.user.models.entities.Status;
 import com.yasirkhan.user.models.entities.UsersProfile;
 import com.yasirkhan.user.producer.UserEventProducer;
@@ -41,10 +40,8 @@ public class AdminServiceImpl implements AdminService {
         adminUser.setPhoneNo(request.getPhoneNo());
         adminUser.setStatus(Status.ACTIVE);
 
-        UsersProfile savedUser;
-
         try {
-            savedUser = profileRepository.saveAndFlush(adminUser);
+            profileRepository.saveAndFlush(adminUser);
 
             UserStatusEventDto successEvent = UserStatusEventDto.builder()
                     .userId(request.getUserId())
