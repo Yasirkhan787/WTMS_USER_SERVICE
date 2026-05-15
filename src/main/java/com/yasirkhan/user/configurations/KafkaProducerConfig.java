@@ -28,15 +28,20 @@ public class KafkaProducerConfig {
         return new NewTopic("user-response-topic", 2, (short) 1);
     }
 
+    // --- DLTs for User Service Consumers ---
+    @Bean
+    public NewTopic userCreatedDLT() { return new NewTopic("user-created-topic.DLT", 2, (short) 1); }
+    @Bean
+    public NewTopic userUpdatedDLT() { return new NewTopic("user-updated-topic.DLT", 2, (short) 1); }
+    @Bean
+    public NewTopic userStatusDLT() { return new NewTopic("user-status-topic.DLT", 2, (short) 1); }
+
     @Bean
     public Map<String, Object> producerConfig(){
-
-        Map<String, Object> properties
-                = new HashMap<>();
+        Map<String, Object> properties = new HashMap<>();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER);
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        properties.put(JacksonJsonSerializer.ADD_TYPE_INFO_HEADERS, true);
 
         return properties;
     }

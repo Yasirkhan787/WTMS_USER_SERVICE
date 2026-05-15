@@ -66,6 +66,7 @@ public class DriverServiceImpl implements DriverService {
             UserStatusEventDto successEvent = UserStatusEventDto.builder()
                     .userId(request.getUserId())
                     .status("SUCCESS")
+                    .type("CREATE")
                     .build();
 
             eventProducer.sendUserCreatedStatusEvent(successEvent);
@@ -75,7 +76,9 @@ public class DriverServiceImpl implements DriverService {
             UserStatusEventDto failureEvent = UserStatusEventDto.builder()
                     .userId(request.getUserId())
                     .status("FAILURE")
+                    .type("CREATE")
                     .build();
+
             eventProducer.sendUserCreatedStatusEvent(failureEvent);
 
             throw new DatabaseException("Failed to save Driver. Initiated Rollback. Error: " + e.getMessage());

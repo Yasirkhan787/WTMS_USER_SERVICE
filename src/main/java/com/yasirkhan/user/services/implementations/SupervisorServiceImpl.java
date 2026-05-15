@@ -64,7 +64,9 @@ public class SupervisorServiceImpl implements SupervisorService {
             UserStatusEventDto successEvent = UserStatusEventDto.builder()
                     .userId(request.getUserId())
                     .status("SUCCESS")
+                    .type("CREATE")
                     .build();
+
             eventProducer.sendUserCreatedStatusEvent(successEvent);
 
         } catch (Exception e) {
@@ -72,7 +74,9 @@ public class SupervisorServiceImpl implements SupervisorService {
             UserStatusEventDto failureEvent = UserStatusEventDto.builder()
                     .userId(request.getUserId())
                     .status("FAILURE")
+                    .type("CREATE")
                     .build();
+
             eventProducer.sendUserCreatedStatusEvent(failureEvent);
 
             throw new DatabaseException("Failed to save Supervisor. Initiated Rollback. Error: " + e.getMessage());
