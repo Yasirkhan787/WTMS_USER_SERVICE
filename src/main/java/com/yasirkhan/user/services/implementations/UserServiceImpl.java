@@ -10,6 +10,7 @@ import com.yasirkhan.user.services.UserService;
 import com.yasirkhan.user.utils.ResourceHandler;
 import com.yasirkhan.user.utils.ResponseConversion;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -75,12 +76,46 @@ public class UserServiceImpl implements UserService {
     public List<UserResponse> getAllUser() {
 
         List<UsersProfile> users = profileRepository
-                .findAllProfileWithDetails()
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("No User Found in Database"));
+                .findAllProfileWithDetails();
 
         return users
                 .stream()
+                .map(ResponseConversion::toUserResponse)
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    @Transactional(readOnly = true) // Best practice for GET methods: improves Hibernate performance
+    public List<UserResponse> getAllDrivers() {
+
+        // Returns a populated list, or an empty list [] if no drivers exist
+        List<UsersProfile> drivers = profileRepository.findAllDrivers();
+
+        return drivers
+                .stream()
+                .map(ResponseConversion::toUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllSupervisors() {
+
+        List<UsersProfile> supervisors = profileRepository.findAllSupervisors();
+
+        return supervisors.stream()
+                .map(ResponseConversion::toUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllAdmins() {
+
+        List<UsersProfile> admins = profileRepository.findAllAdmins();
+
+        return admins.stream()
                 .map(ResponseConversion::toUserResponse)
                 .collect(Collectors.toList());
     }

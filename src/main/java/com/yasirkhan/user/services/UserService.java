@@ -19,4 +19,10 @@ public interface UserService {
     void updateUserStatus(UUID userId, Status status);
 
     List<UserResponse> getAllUser();
+
+    List<UserResponse> getAllAdmins();
+
+    List<UserResponse> getAllSupervisors();
+
+    List<UserResponse> getAllDrivers();
 }
