@@ -69,6 +69,10 @@ public class AuthorizationFilter extends OncePerRequestFilter {
             String userId = jwtService.extractUserId(token);
             Integer tokenVersion = jwtService.extractTokenVersion(token);
 
+            request.setAttribute("userId", userId);
+            request.setAttribute("username", username);
+            request.setAttribute("role", role);
+
             // 4Redis Revocation Check
             String redisKey = "user:" + userId + ":tokenVersion";
             // String currentRedisVersion = redisTemplate.opsForValue().get(redisKey);

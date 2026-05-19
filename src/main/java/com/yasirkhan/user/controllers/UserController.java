@@ -4,6 +4,8 @@ import com.yasirkhan.user.responses.UserResponse;
 import com.yasirkhan.user.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +23,9 @@ public class UserController {
     @GetMapping("/profile")
     @PreAuthorize("hasAnyRole('ADMIN','SUPERVISOR','DRIVER')")
     public ResponseEntity<?> getUserById(
-            @RequestHeader("X-User-Id") String userId,
-            @RequestHeader("X-Username") String username,
-            @RequestHeader("X-User-Role") String role){
+            @RequestAttribute("userId") String userId,
+            @RequestAttribute("username") String username,
+            @RequestAttribute("role") String role) {
 
         return
                 ResponseEntity.ok(userService.getUserById(username, userId, role));
