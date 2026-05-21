@@ -89,7 +89,7 @@ public class ResponseConversion {
                     .fatherName(profile.getDriver().getFatherName())
                     .cnic(profile.getDriver().getCnic())
                     .licenseNumber(profile.getDriver().getLicenseNo())
-                    .licenseExpiry(profile.getDriver().getLicenseExpiry().toString())
+                    .licenseExpiry(profile.getDriver().getLicenseExpiry())
                     .dob(profile.getDriver().getDob())
                     .gender(profile.getDriver().getGender())
                     .address(profile.getDriver().getAddress())

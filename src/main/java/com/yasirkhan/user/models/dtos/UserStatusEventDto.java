@@ -15,6 +15,6 @@ public class UserStatusEventDto {
 
     private UUID userId;
     private String status; // SUCCESS, FAILURE
-    private String type; // CREATE , UPDATE
+    private String type; // CREATE , UPDATE, BLOCK
 
 }

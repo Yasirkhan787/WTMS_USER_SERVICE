@@ -1,6 +1,7 @@
 package com.yasirkhan.user.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,6 +12,7 @@ import com.yasirkhan.user.responses.ErrorResponse;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -104,4 +106,23 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, status);
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleGlobalRuntimeException(RuntimeException ex, HttpServletRequest request) {
+
+        log.error("Unexpected Runtime Exception caught at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+
+        ErrorResponse response =
+                ErrorResponse
+                        .builder()
+                        .message("An unexpected internal server error occurred.")
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                        .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                        .path(request.getRequestURI())
+                        .timeStamp(LocalDateTime.now())
+                        .build();
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
+

@@ -1,5 +1,6 @@
 package com.yasirkhan.user.responses;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,8 +25,10 @@ public class DriverResponse {
     private String phoneNo;
     private String address;
     private String gender;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate dob;
     private String licenseNo;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate licenseExpiry;
     private String status;
 }
