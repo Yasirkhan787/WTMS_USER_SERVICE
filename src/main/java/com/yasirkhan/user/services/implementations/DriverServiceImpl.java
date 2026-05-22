@@ -2,6 +2,7 @@ package com.yasirkhan.user.services.implementations;
 
 import com.yasirkhan.user.exceptions.DatabaseException;
 import com.yasirkhan.user.exceptions.ResourceNotFoundException;
+import com.yasirkhan.user.exceptions.UserAlreadyExistException;
 import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.dtos.UserStatusEventDto;
 import com.yasirkhan.user.models.entities.Driver;
@@ -37,6 +38,16 @@ public class DriverServiceImpl implements DriverService {
     @Override
     @Transactional
     public void createDriver(UserEventDto request) {
+
+        //  check if the cnic is already exists
+        if (driverRepository.existsDriverByCnic(request.getCnic())) {
+            throw new UserAlreadyExistException("Driver with CNIC "+ request.getCnic() + " already exists");
+        }
+
+        // check if the license no already exist
+        if (driverRepository.existsDriverByLicenseNo(request.getLicenseNo())) {
+            throw new UserAlreadyExistException("Driver with Licence Number "+ request.getLicenseNo() + " already exists");
+        }
 
         UsersProfile driverProfile = new UsersProfile();
 
@@ -85,6 +96,7 @@ public class DriverServiceImpl implements DriverService {
         }
     }
 
+    // Update Driver
     @Override
     @Transactional
     public void updateDriver(UserEventDto updateRequest) {
@@ -103,11 +115,21 @@ public class DriverServiceImpl implements DriverService {
         if (updateRequest.getStatus() != null) dbUser.setStatus(Status.valueOf(updateRequest.getStatus()));
 
         if (updateRequest.getFatherName() != null) dbDriver.setFatherName(updateRequest.getFatherName());
-        if (updateRequest.getCnic() != null) dbDriver.setCnic(updateRequest.getCnic());
+        if (updateRequest.getCnic() != null) {
+            if (driverRepository.existsDriverByCnic(updateRequest.getCnic())) {
+                throw new UserAlreadyExistException("Driver with CNIC "+ updateRequest.getCnic() + " already exists");
+            }
+            dbDriver.setCnic(updateRequest.getCnic());
+        }
         if (updateRequest.getGender() != null) dbDriver.setGender(updateRequest.getGender());
         if (updateRequest.getAddress() != null) dbDriver.setAddress(updateRequest.getAddress());
         if (updateRequest.getDob() != null) dbDriver.setDob(updateRequest.getDob());
-        if (updateRequest.getLicenseNo() != null) dbDriver.setLicenseNo(updateRequest.getLicenseNo());
+        if (updateRequest.getLicenseNo() != null) {
+            if (driverRepository.existsDriverByLicenseNo(updateRequest.getLicenseNo())) {
+                throw new UserAlreadyExistException("Driver with Licence Number "+ updateRequest.getLicenseNo() + " already exists");
+            }
+            dbDriver.setLicenseNo(updateRequest.getLicenseNo());
+        }
         if (updateRequest.getLicenseExpiry() != null) dbDriver.setLicenseExpiry(updateRequest.getLicenseExpiry());
 
         driverRepository.save(dbDriver);

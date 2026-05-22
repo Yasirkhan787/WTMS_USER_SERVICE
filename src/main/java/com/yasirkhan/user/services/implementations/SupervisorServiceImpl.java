@@ -2,6 +2,7 @@ package com.yasirkhan.user.services.implementations;
 
 import com.yasirkhan.user.exceptions.DatabaseException;
 import com.yasirkhan.user.exceptions.ResourceNotFoundException;
+import com.yasirkhan.user.exceptions.UserAlreadyExistException;
 import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.dtos.UserStatusEventDto;
 import com.yasirkhan.user.models.entities.Role;
@@ -37,6 +38,11 @@ public class SupervisorServiceImpl implements SupervisorService {
     @Override
     @Transactional
     public void createSupervisor(UserEventDto request) {
+
+        //  check if the cnic is already exists
+        if (supervisorRepository.existsDriverByCnic(request.getCnic())) {
+            throw new UserAlreadyExistException("Driver with CNIC "+ request.getCnic() + " already exists");
+        }
 
         UsersProfile supervisorProfile = new UsersProfile();
 
@@ -101,7 +107,12 @@ public class SupervisorServiceImpl implements SupervisorService {
         if (updateRequest.getStatus() != null) dbUser.setStatus(Status.valueOf(updateRequest.getStatus()));
 
         if (updateRequest.getFatherName() != null) dbSupervisor.setFatherName(updateRequest.getFatherName());
-        if (updateRequest.getCnic() != null) dbSupervisor.setCnic(updateRequest.getCnic());
+        if (updateRequest.getCnic() != null) {
+            if (supervisorRepository.existsDriverByCnic(updateRequest.getCnic())) {
+                throw new UserAlreadyExistException("Driver with CNIC "+ updateRequest.getCnic() + " already exists");
+            }
+            dbSupervisor.setCnic(updateRequest.getCnic());
+        }
         if (updateRequest.getGender() != null) dbSupervisor.setGender(updateRequest.getGender());
         if (updateRequest.getAddress() != null) dbSupervisor.setAddress(updateRequest.getAddress());
         if (updateRequest.getDob() != null) dbSupervisor.setDob(updateRequest.getDob());

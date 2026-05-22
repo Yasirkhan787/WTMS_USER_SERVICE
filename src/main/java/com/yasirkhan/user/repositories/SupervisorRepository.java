@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface SupervisorRepository extends JpaRepository<Supervisor, UUID> {
+    boolean existsDriverByCnic(String cnic);
 }

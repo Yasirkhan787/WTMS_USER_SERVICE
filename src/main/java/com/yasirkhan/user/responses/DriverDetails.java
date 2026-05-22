@@ -12,11 +12,12 @@ import java.time.LocalDate;
 public class DriverDetails {
     private String fatherName;
     private String cnic;
-    private String licenseNumber;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
-    private LocalDate licenseExpiry;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate dob;
     private String gender;
     private String address;
+    private String licenseNumber;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    private LocalDate licenseExpiry;
+    private String licenseStatus;
 }

@@ -19,14 +19,19 @@ public class Supervisor {
     @Id
     private UUID id;
 
+    @Column(nullable = false)
     private String fatherName;
 
+    @Column(nullable = false, unique = true)
     private String cnic;
 
+    @Column(nullable = false)
     private LocalDate dob;
 
+    @Column(nullable = false)
     private String address;
 
+    @Column(nullable = false)
     private String gender;
 
     @OneToOne()

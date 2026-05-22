@@ -71,6 +71,7 @@ public class ResponseConversion {
                         .dob(savedDriver.getDob())
                         .licenseNo(savedDriver.getLicenseNo())
                         .licenseExpiry(savedDriver.getLicenseExpiry())
+                        .licenseStatus(LicenseValidator.getLicenseStatus(savedDriver.getLicenseExpiry()))
                         .status(savedUsersProfile.getStatus().name())
                         .build();
     }
@@ -90,6 +91,7 @@ public class ResponseConversion {
                     .cnic(profile.getDriver().getCnic())
                     .licenseNumber(profile.getDriver().getLicenseNo())
                     .licenseExpiry(profile.getDriver().getLicenseExpiry())
+                    .licenseStatus(LicenseValidator.getLicenseStatus(profile.getDriver().getLicenseExpiry()))
                     .dob(profile.getDriver().getDob())
                     .gender(profile.getDriver().getGender())
                     .address(profile.getDriver().getAddress())

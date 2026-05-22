@@ -20,18 +20,25 @@ public class Driver {
     @Id
     private UUID id;
 
+    @Column(nullable = false)
     private String fatherName;
 
+    @Column(nullable = false, unique = true)
     private String cnic;
 
+    @Column(nullable = false)
     private String address;
 
+    @Column(nullable = false)
     private String gender;
 
+    @Column(nullable = false)
     private LocalDate dob;
 
+    @Column(nullable = false)
     private String licenseNo;
 
+    @Column(nullable = false)
     private LocalDate licenseExpiry;
 
     @OneToOne()

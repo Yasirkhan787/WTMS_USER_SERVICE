@@ -18,10 +18,13 @@ public class UsersProfile {
     @Id
     private UUID id;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String phoneNo;
 
     @Enumerated(EnumType.STRING)

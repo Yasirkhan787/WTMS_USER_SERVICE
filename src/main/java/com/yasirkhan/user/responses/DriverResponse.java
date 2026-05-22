@@ -30,5 +30,6 @@ public class DriverResponse {
     private String licenseNo;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate licenseExpiry;
+    private String licenseStatus;
     private String status;
 }

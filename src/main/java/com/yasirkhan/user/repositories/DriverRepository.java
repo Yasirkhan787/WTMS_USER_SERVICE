@@ -8,4 +8,8 @@ import java.util.UUID;
 
 @Repository
 public interface DriverRepository extends JpaRepository<Driver, UUID> {
+
+    boolean existsDriverByCnic(String cnic);
+
+    boolean existsDriverByLicenseNo(String licenseNo);
 }

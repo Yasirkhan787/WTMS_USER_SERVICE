@@ -15,6 +15,23 @@ import java.time.LocalDateTime;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExistException(UserAlreadyExistException ex, HttpServletRequest request){
+
+        log.warn("Registration rejected: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(ex.getStatus().value())
+                .error(ex.getStatus().getReasonPhrase())
+                .timeStamp(LocalDateTime.now())
+                .path(request.getRequestURI())
+                //.traceId(getTraceId())
+                .build();
+
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotException(ResourceNotFoundException exception, HttpServletRequest request) {
 
