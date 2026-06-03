@@ -2,7 +2,9 @@ package com.yasirkhan.user.consumer;
 
 import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.dtos.UserStatusEventDto;
-import com.yasirkhan.user.models.entities.Status;
+import com.yasirkhan.user.models.enums.EventStatus;
+import com.yasirkhan.user.models.enums.EventType;
+import com.yasirkhan.user.models.enums.Status;
 import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.services.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +47,9 @@ public class UserEventConsumer {
             groupId = "user-group",
             containerFactory = "listenerContainerFactory"
     )
-    public void consumeUserStatusEvent(UserStatusEventDto eventDto){
-        userService.updateUserStatus(eventDto.getUserId(), Status.valueOf(eventDto.getStatus()));
+    public void consumeUserStatusEvent(UserStatusEventDto eventDto) {
+        if (EventType.BLOCK.equals(eventDto.getType())) {
+            userService.updateUserStatus(eventDto.getUserData().getUserId(), Status.valueOf(eventDto.getUserData().getStatus()));
+        }
     }
 }

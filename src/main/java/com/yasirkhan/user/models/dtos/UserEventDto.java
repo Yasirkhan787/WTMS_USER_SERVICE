@@ -1,7 +1,8 @@
 package com.yasirkhan.user.models.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.yasirkhan.user.models.entities.Role;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.yasirkhan.user.models.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,26 +15,17 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserEventDto {
-
     private UUID userId;
-
     private String username;
-
     private String email;
-
     private Role role;
-
     private String name;
-
     private String fatherName;
-
     private String cnic;
-
     private String phoneNo;
-
     private String address;
-
     private String gender;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")

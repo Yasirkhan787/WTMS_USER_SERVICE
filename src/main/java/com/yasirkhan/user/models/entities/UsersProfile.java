@@ -1,5 +1,6 @@
 package com.yasirkhan.user.models.entities;
 
+import com.yasirkhan.user.models.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

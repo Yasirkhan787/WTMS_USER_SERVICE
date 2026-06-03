@@ -1,4 +1,4 @@
-package com.yasirkhan.user.models.entities;
+package com.yasirkhan.user.models.enums;
 
 public enum Status {
 

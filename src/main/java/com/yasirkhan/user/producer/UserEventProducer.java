@@ -15,16 +15,17 @@ public class UserEventProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendUserCreatedStatusEvent(UserStatusEventDto event) {
+    public void sendUserStatusEvent(UserStatusEventDto event) {
         kafkaTemplate.send("user-response-topic", event).whenComplete((result, ex) -> {
             if (ex == null) {
-                log.info("SUCCESS: User Updated event sent for ID: {} (Partition: {}, Offset: {})",
-                        event.getUserId(),
+                log.info("SUCCESS: User {} event sent for ID: {} (Partition: {}, Offset: {})",
+                        event.getType(),
+                        event.getUserData().getUserId(),
                         result.getRecordMetadata().partition(),
                         result.getRecordMetadata().offset());
             } else {
                 log.error("FAILED to send User Update event for ID: {}. Reason: {}",
-                        event.getUserId(),
+                        event.getUserData().getUserId(),
                         ex.getMessage());
             }
         });

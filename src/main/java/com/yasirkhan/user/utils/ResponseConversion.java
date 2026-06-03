@@ -1,7 +1,7 @@
 package com.yasirkhan.user.utils;
 
 import com.yasirkhan.user.models.entities.Driver;
-import com.yasirkhan.user.models.entities.Role;
+import com.yasirkhan.user.models.enums.Role;
 import com.yasirkhan.user.models.entities.Supervisor;
 import com.yasirkhan.user.models.entities.UsersProfile;
 import com.yasirkhan.user.responses.*;

@@ -1,7 +1,7 @@
 package com.yasirkhan.user.services;
 
 import com.yasirkhan.user.models.dtos.UserEventDto;
-import com.yasirkhan.user.models.entities.Status;
+import com.yasirkhan.user.models.enums.Status;
 import com.yasirkhan.user.responses.UserResponse;
 
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.yasirkhan.user.responses;
 
-import com.yasirkhan.user.models.entities.Role;
-import com.yasirkhan.user.models.entities.Status;
+import com.yasirkhan.user.models.enums.Role;
+import com.yasirkhan.user.models.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

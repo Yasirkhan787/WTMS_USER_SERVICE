@@ -2,7 +2,7 @@ package com.yasirkhan.user.services.implementations;
 
 import com.yasirkhan.user.exceptions.ResourceNotFoundException;
 import com.yasirkhan.user.models.dtos.UserEventDto;
-import com.yasirkhan.user.models.entities.Status;
+import com.yasirkhan.user.models.enums.Status;
 import com.yasirkhan.user.models.entities.UsersProfile;
 import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.responses.UserResponse;

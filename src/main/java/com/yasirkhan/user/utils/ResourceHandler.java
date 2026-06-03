@@ -1,7 +1,7 @@
 package com.yasirkhan.user.utils;
 
 import com.yasirkhan.user.models.dtos.UserEventDto;
-import com.yasirkhan.user.models.entities.Role;
+import com.yasirkhan.user.models.enums.Role;
 import com.yasirkhan.user.responses.AdminResponse;
 import com.yasirkhan.user.responses.DriverResponse;
 import com.yasirkhan.user.responses.SupervisorResponse;

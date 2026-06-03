@@ -30,12 +30,19 @@ public class KafkaProducerConfig {
 
     // --- DLTs for User Service Consumers ---
     @Bean
-    public NewTopic userCreatedDLT() { return new NewTopic("user-created-topic.DLT", 2, (short) 1); }
-    @Bean
-    public NewTopic userUpdatedDLT() { return new NewTopic("user-updated-topic.DLT", 2, (short) 1); }
-    @Bean
-    public NewTopic userStatusDLT() { return new NewTopic("user-status-topic.DLT", 2, (short) 1); }
+    public NewTopic userCreatedDLT() {
+        return new NewTopic("user-created-topic-dlt", 2, (short) 1);
+    }
 
+    @Bean
+    public NewTopic userUpdatedDLT() {
+        return new NewTopic("user-updated-topic-dlt", 2, (short) 1);
+    }
+
+    @Bean
+    public NewTopic userStatusDLT() {
+        return new NewTopic("user-status-topic-dlt", 2, (short) 1);
+    }
     @Bean
     public Map<String, Object> producerConfig(){
         Map<String, Object> properties = new HashMap<>();

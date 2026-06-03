@@ -1,51 +1,57 @@
 package com.yasirkhan.user.services.implementations;
 
-import com.yasirkhan.user.exceptions.DatabaseException;
 import com.yasirkhan.user.exceptions.ResourceNotFoundException;
-import com.yasirkhan.user.exceptions.UserAlreadyExistException;
 import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.dtos.UserStatusEventDto;
-import com.yasirkhan.user.models.entities.Role;
-import com.yasirkhan.user.models.entities.Status;
 import com.yasirkhan.user.models.entities.Supervisor;
 import com.yasirkhan.user.models.entities.UsersProfile;
-import com.yasirkhan.user.producer.UserEventProducer;
+import com.yasirkhan.user.models.enums.EventStatus;
+import com.yasirkhan.user.models.enums.EventType;
+import com.yasirkhan.user.models.enums.Role;
+import com.yasirkhan.user.models.enums.Status;
 import com.yasirkhan.user.repositories.SupervisorRepository;
 import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.responses.SupervisorResponse;
 import com.yasirkhan.user.services.SupervisorService;
 import com.yasirkhan.user.utils.ResponseConversion;
-import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
+@Transactional(readOnly = true)
 public class SupervisorServiceImpl implements SupervisorService {
 
     private final UserProfileRepository profileRepository;
     private final SupervisorRepository supervisorRepository;
-    private final UserEventProducer eventProducer;
+    private final ApplicationEventPublisher eventPublisher;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public SupervisorServiceImpl(UserProfileRepository profileRepository, SupervisorRepository supervisorRepository,
-                                 UserEventProducer eventProducer) {
+    public SupervisorServiceImpl(UserProfileRepository profileRepository, SupervisorRepository supervisorRepository, ApplicationEventPublisher eventPublisher, RedisTemplate<String, Object> redisTemplate) {
         this.profileRepository = profileRepository;
         this.supervisorRepository = supervisorRepository;
-        this.eventProducer = eventProducer;
+        this.eventPublisher = eventPublisher;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
     @Transactional
     public void createSupervisor(UserEventDto request) {
 
-        //  check if the cnic is already exists
-        if (supervisorRepository.existsDriverByCnic(request.getCnic())) {
-            throw new UserAlreadyExistException("Driver with CNIC "+ request.getCnic() + " already exists");
+        if (supervisorRepository.existsByCnic(request.getCnic())) {
+            publishFailureEvent(request, EventType.CREATE, "Duplicate CNIC");
+            return;
         }
 
         UsersProfile supervisorProfile = new UsersProfile();
-
         supervisorProfile.setId(request.getUserId());
         supervisorProfile.setName(request.getName());
         supervisorProfile.setEmail(request.getEmail());
@@ -67,39 +73,31 @@ public class SupervisorServiceImpl implements SupervisorService {
 
             supervisorRepository.saveAndFlush(supervisor);
 
-            UserStatusEventDto successEvent = UserStatusEventDto.builder()
-                    .userId(request.getUserId())
-                    .status("SUCCESS")
-                    .type("CREATE")
-                    .build();
+            // Sync Base Profile to local Redis
+            syncUserToRedis(supervisorProfile, Role.DRIVER);
 
-            eventProducer.sendUserCreatedStatusEvent(successEvent);
+            publishSuccessEvent(request, EventType.CREATE);
 
         } catch (Exception e) {
-
-            UserStatusEventDto failureEvent = UserStatusEventDto.builder()
-                    .userId(request.getUserId())
-                    .status("FAILURE")
-                    .type("CREATE")
-                    .build();
-
-            eventProducer.sendUserCreatedStatusEvent(failureEvent);
-
-            throw new DatabaseException("Failed to save Supervisor. Initiated Rollback. Error: " + e.getMessage());
+            publishFailureEvent(request, EventType.CREATE, "Database Error: " + e.getMessage());
         }
     }
 
     @Override
     @Transactional
     public void updateSupervisor(UserEventDto updateRequest) {
-
         UUID userId = updateRequest.getUserId();
 
-        UsersProfile dbUser = profileRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found with User ID: " + userId));
+        Optional<UsersProfile> dbUserOpt = profileRepository.findById(userId);
+        Optional<Supervisor> dbSupervisorOpt = supervisorRepository.findById(userId);
 
-        Supervisor dbSupervisor = supervisorRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Supervisor Not Found with User ID: " + userId));
+        if (dbUserOpt.isEmpty() || dbSupervisorOpt.isEmpty()) {
+            publishFailureEvent(updateRequest, EventType.UPDATE, "User or Supervisor Not Found");
+            return;
+        }
+
+        UsersProfile dbUser = dbUserOpt.get();
+        Supervisor dbSupervisor = dbSupervisorOpt.get();
 
         if (updateRequest.getEmail() != null) dbUser.setEmail(updateRequest.getEmail());
         if (updateRequest.getName() != null) dbUser.setName(updateRequest.getName());
@@ -107,23 +105,31 @@ public class SupervisorServiceImpl implements SupervisorService {
         if (updateRequest.getStatus() != null) dbUser.setStatus(Status.valueOf(updateRequest.getStatus()));
 
         if (updateRequest.getFatherName() != null) dbSupervisor.setFatherName(updateRequest.getFatherName());
+
         if (updateRequest.getCnic() != null) {
-            if (supervisorRepository.existsDriverByCnic(updateRequest.getCnic())) {
-                throw new UserAlreadyExistException("Driver with CNIC "+ updateRequest.getCnic() + " already exists");
+            if (!updateRequest.getCnic().equals(dbSupervisor.getCnic()) && supervisorRepository.existsByCnic(updateRequest.getCnic())) {
+                publishFailureEvent(updateRequest, EventType.UPDATE, "CNIC already exists");
+                return;
             }
             dbSupervisor.setCnic(updateRequest.getCnic());
         }
+
         if (updateRequest.getGender() != null) dbSupervisor.setGender(updateRequest.getGender());
         if (updateRequest.getAddress() != null) dbSupervisor.setAddress(updateRequest.getAddress());
         if (updateRequest.getDob() != null) dbSupervisor.setDob(updateRequest.getDob());
 
-        supervisorRepository.save(dbSupervisor);
-        profileRepository.save(dbUser);
+        try {
+            supervisorRepository.save(dbSupervisor);
+            profileRepository.save(dbUser);
+
+            publishSuccessEvent(updateRequest, EventType.UPDATE);
+        } catch (Exception e) {
+            publishFailureEvent(updateRequest, EventType.UPDATE, "Database Error: " + e.getMessage());
+        }
     }
 
     @Override
     public SupervisorResponse getUserById(Map<String, Object> getRequest) {
-
         UUID userId = UUID.fromString((String) getRequest.get("userId"));
         String username = getRequest.get("username").toString();
         String role = getRequest.get("role").toString();
@@ -135,5 +141,79 @@ public class SupervisorServiceImpl implements SupervisorService {
                 .orElseThrow(() -> new ResourceNotFoundException("Supervisor Not Found with User ID: " + userId));
 
         return ResponseConversion.toSupervisorResponse(username, role, dbUser, dbSupervisor);
+    }
+
+    // --- Updated Redis Sync Helper (Driver Service) ---
+    private void syncUserToRedis(UsersProfile profile, Role role) {
+        String redisKey = "wtms:user:" + profile.getId();
+        Map<String, Object> cacheData = new HashMap<>();
+
+        // 1. Pack the standard Profile Data
+        cacheData.put("name", profile.getName());
+        cacheData.put("email", profile.getEmail());
+        cacheData.put("phoneNo", profile.getPhoneNo());
+        cacheData.put("status", profile.getStatus().name());
+        cacheData.put("role", role.name());
+
+        // 2. Pack the specific Driver Data (Because we linked them, getDriver() works!)
+        if (profile.getDriver() != null) {
+            Supervisor supervisor = profile.getSupervisor();
+
+            cacheData.put("fatherName", supervisor.getFatherName());
+            cacheData.put("cnic", supervisor.getCnic());
+            cacheData.put("gender", supervisor.getGender());
+            cacheData.put("address", supervisor.getAddress());
+
+            // Remember to convert Dates to Strings for Redis safety!
+            cacheData.put("dob", supervisor.getDob() != null ? supervisor.getDob().toString() : "");
+        }
+
+        // 3. Save the giant, combined map to Redis
+        redisTemplate.opsForHash().putAll(redisKey, cacheData);
+    }
+
+    // --- HELPER METHODS FOR SAGA EVENTS ---
+
+    private void publishSuccessEvent(UserEventDto sourceData, EventType type) {
+
+        UserEventDto supervisorData = UserEventDto.builder()
+                .userId(sourceData.getUserId())
+                .name(sourceData.getName())
+                .fatherName(sourceData.getFatherName())
+                .email(sourceData.getEmail())
+                .dob(sourceData.getDob())
+                .address(sourceData.getAddress())
+                .cnic(sourceData.getCnic())
+                .gender(sourceData.getGender())
+                .phoneNo(sourceData.getPhoneNo())
+                .role(Role.SUPERVISOR)
+                .status(Status.ACTIVE.name())
+                .build();
+
+        UserStatusEventDto eventDto = UserStatusEventDto.builder()
+                .type(type)
+                .eventTypeStatus(EventStatus.SUCCESS)
+                .userData(supervisorData)
+                .build();
+
+        eventPublisher.publishEvent(eventDto);
+    }
+
+    private void publishFailureEvent(UserEventDto sourceData, EventType type, String reason) {
+        log.error("Supervisor Saga Event Failed. Reason: {}", reason);
+
+        UserEventDto payloadData = UserEventDto.builder()
+                .userId(sourceData.getUserId())
+                .status("BLOCK")
+                .role(Role.SUPERVISOR)
+                .build();
+
+        UserStatusEventDto eventDto = UserStatusEventDto.builder()
+                .type(type)
+                .eventTypeStatus(EventStatus.FAILURE)
+                .userData(payloadData)
+                .build();
+
+        eventPublisher.publishEvent(eventDto);
     }
 }
