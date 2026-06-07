@@ -18,6 +18,7 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserEventDto {
     private UUID userId;
+    private UUID tehsilId;
     private String username;
     private String email;
     private Role role;

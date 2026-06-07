@@ -34,6 +34,8 @@ public class Supervisor {
     @Column(nullable = false)
     private String gender;
 
+    private UUID tehsilId;
+
     @OneToOne()
     @MapsId
     @JoinColumn(name = "id")

@@ -68,6 +68,7 @@ public class SupervisorServiceImpl implements SupervisorService {
                     .address(request.getAddress())
                     .gender(request.getGender())
                     .dob(request.getDob())
+                    .tehsilId(request.getTehsilId())
                     .profile(supervisorProfile)
                     .build();
 
@@ -113,7 +114,7 @@ public class SupervisorServiceImpl implements SupervisorService {
             }
             dbSupervisor.setCnic(updateRequest.getCnic());
         }
-
+        if (updateRequest.getTehsilId() != null) dbSupervisor.setTehsilId(updateRequest.getTehsilId());
         if (updateRequest.getGender() != null) dbSupervisor.setGender(updateRequest.getGender());
         if (updateRequest.getAddress() != null) dbSupervisor.setAddress(updateRequest.getAddress());
         if (updateRequest.getDob() != null) dbSupervisor.setDob(updateRequest.getDob());
@@ -156,7 +157,7 @@ public class SupervisorServiceImpl implements SupervisorService {
         cacheData.put("role", role.name());
 
         // 2. Pack the specific Driver Data (Because we linked them, getDriver() works!)
-        if (profile.getDriver() != null) {
+        if (profile.getSupervisor() != null) {
             Supervisor supervisor = profile.getSupervisor();
 
             cacheData.put("fatherName", supervisor.getFatherName());
@@ -166,6 +167,7 @@ public class SupervisorServiceImpl implements SupervisorService {
 
             // Remember to convert Dates to Strings for Redis safety!
             cacheData.put("dob", supervisor.getDob() != null ? supervisor.getDob().toString() : "");
+            cacheData.put("tehsilId", supervisor.getTehsilId().toString());
         }
 
         // 3. Save the giant, combined map to Redis
@@ -187,6 +189,7 @@ public class SupervisorServiceImpl implements SupervisorService {
                 .gender(sourceData.getGender())
                 .phoneNo(sourceData.getPhoneNo())
                 .role(Role.SUPERVISOR)
+                .tehsilId(sourceData.getTehsilId())
                 .status(Status.ACTIVE.name())
                 .build();
 
