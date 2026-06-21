@@ -61,6 +61,7 @@ public class DriverServiceImpl implements DriverService {
             profileRepository.saveAndFlush(driverProfile);
 
             Driver driver = Driver.builder()
+                    .tehsilId(request.getTehsilId())
                     .fatherName(request.getFatherName())
                     .cnic(request.getCnic())
                     .address(request.getAddress())
@@ -74,7 +75,7 @@ public class DriverServiceImpl implements DriverService {
             driverRepository.saveAndFlush(driver);
 
             // Sync Base Profile to local Redis
-            syncUserToRedis(driverProfile, Role.DRIVER);
+            syncUserToRedis(driverProfile, driver, Role.DRIVER);
 
             // Broadcast success back to Auth Service SAGA
             publishSuccessEvent(request, EventType.CREATE);
@@ -115,6 +116,7 @@ public class DriverServiceImpl implements DriverService {
             dbDriver.setCnic(updateRequest.getCnic());
         }
 
+        if (updateRequest.getTehsilId() != null) dbDriver.setTehsilId(updateRequest.getTehsilId());
         if (updateRequest.getGender() != null) dbDriver.setGender(updateRequest.getGender());
         if (updateRequest.getAddress() != null) dbDriver.setAddress(updateRequest.getAddress());
         if (updateRequest.getDob() != null) dbDriver.setDob(updateRequest.getDob());
@@ -133,8 +135,7 @@ public class DriverServiceImpl implements DriverService {
             driverRepository.save(dbDriver);
             profileRepository.save(dbUser);
 
-            // Sync Base Profile to local Redis
-            //syncUserToRedis(driverProfile, Role.DRIVER);
+            syncUserToRedis(dbUser, dbDriver, Role.DRIVER);
 
             publishSuccessEvent(updateRequest, EventType.UPDATE);
         } catch (Exception e) {
@@ -157,8 +158,8 @@ public class DriverServiceImpl implements DriverService {
         return ResponseConversion.toDriverResponse(username, role, dbUser, dbDriver);
     }
 
-    // --- Updated Redis Sync Helper (Driver Service) ---
-    private void syncUserToRedis(UsersProfile profile, Role role) {
+    // --- Updated Redis Sync Helper (Option 2) ---
+    private void syncUserToRedis(UsersProfile profile, Driver driver, Role role) {
         String redisKey = "wtms:user:" + profile.getId();
         Map<String, Object> cacheData = new HashMap<>();
 
@@ -166,25 +167,24 @@ public class DriverServiceImpl implements DriverService {
         cacheData.put("name", profile.getName());
         cacheData.put("email", profile.getEmail());
         cacheData.put("phoneNo", profile.getPhoneNo());
-        cacheData.put("status", profile.getStatus().name());
+        cacheData.put("status", profile.getStatus() != null ? profile.getStatus().name() : "");
         cacheData.put("role", role.name());
 
-        // 2. Pack the specific Driver Data (Because we linked them, getDriver() works!)
-        if (profile.getDriver() != null) {
-            Driver driver = profile.getDriver();
-
+        // 2. Pack the specific Driver Data directly from the passed object
+        if (driver != null) {
             cacheData.put("fatherName", driver.getFatherName());
             cacheData.put("cnic", driver.getCnic());
             cacheData.put("gender", driver.getGender());
             cacheData.put("address", driver.getAddress());
             cacheData.put("licenseNo", driver.getLicenseNo());
 
-            // Remember to convert Dates to Strings for Redis safety!
+            // Convert Dates to Strings for Redis safety
             cacheData.put("dob", driver.getDob() != null ? driver.getDob().toString() : "");
             cacheData.put("licenseExpiry", driver.getLicenseExpiry() != null ? driver.getLicenseExpiry().toString() : "");
+            cacheData.put("tehsilId", driver.getTehsilId() != null ? driver.getTehsilId().toString() : "");
         }
 
-        // 3. Save the giant, combined map to Redis
+        // 3. Save the combined map to Redis
         redisTemplate.opsForHash().putAll(redisKey, cacheData);
     }
 

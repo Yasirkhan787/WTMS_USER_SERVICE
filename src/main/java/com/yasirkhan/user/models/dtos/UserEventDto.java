@@ -19,6 +19,7 @@ import java.util.UUID;
 public class UserEventDto {
     private UUID userId;
     private UUID tehsilId;
+    private UUID yardId;
     private String username;
     private String email;
     private Role role;

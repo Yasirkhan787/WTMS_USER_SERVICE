@@ -9,6 +9,7 @@ import com.yasirkhan.user.responses.UserResponse;
 import com.yasirkhan.user.services.UserService;
 import com.yasirkhan.user.utils.ResourceHandler;
 import com.yasirkhan.user.utils.ResponseConversion;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +23,12 @@ public class UserServiceImpl implements UserService {
     private final ResourceHandler handler;
 
     private final UserProfileRepository profileRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public UserServiceImpl(ResourceHandler handler, UserProfileRepository profileRepository) {
+    public UserServiceImpl(ResourceHandler handler, UserProfileRepository profileRepository, RedisTemplate<String, Object> redisTemplate) {
         this.handler = handler;
         this.profileRepository = profileRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -86,7 +89,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true) // Best practice for GET methods: improves Hibernate performance
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllDrivers() {
 
         // Returns a populated list, or an empty list [] if no drivers exist
@@ -94,7 +97,11 @@ public class UserServiceImpl implements UserService {
 
         return drivers
                 .stream()
-                .map(ResponseConversion::toUserResponse)
+                .map(userProfile -> {
+                    UserResponse response = ResponseConversion.toUserResponse(userProfile);
+                    response.setTehsilName(getTehsilName(userProfile.getDriver().getTehsilId()));
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -104,8 +111,13 @@ public class UserServiceImpl implements UserService {
 
         List<UsersProfile> supervisors = profileRepository.findAllSupervisors();
 
-        return supervisors.stream()
-                .map(ResponseConversion::toUserResponse)
+        return supervisors
+                .stream()
+                .map(userProfile -> {
+                    UserResponse response = ResponseConversion.toUserResponse(userProfile);
+                    response.setTehsilName(getTehsilName(userProfile.getSupervisor().getTehsilId()));
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -118,5 +130,10 @@ public class UserServiceImpl implements UserService {
         return admins.stream()
                 .map(ResponseConversion::toUserResponse)
                 .collect(Collectors.toList());
+    }
+
+    private String getTehsilName(UUID tehsilId) {
+        String key =  "wtms:tehsils:" + tehsilId;
+       return (String) redisTemplate.opsForHash().get(key, "tehsilName");
     }
 }

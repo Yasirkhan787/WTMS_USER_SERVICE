@@ -20,5 +20,6 @@ public class UserResponse {
     private String status;
     private DriverDetails driverDetails;
     private SupervisorDetails supervisorDetails;
+    private String tehsilName;
 }
 

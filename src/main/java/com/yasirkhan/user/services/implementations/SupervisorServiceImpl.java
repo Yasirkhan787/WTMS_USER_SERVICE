@@ -69,13 +69,14 @@ public class SupervisorServiceImpl implements SupervisorService {
                     .gender(request.getGender())
                     .dob(request.getDob())
                     .tehsilId(request.getTehsilId())
+                    .yardId(request.getYardId())
                     .profile(supervisorProfile)
                     .build();
 
             supervisorRepository.saveAndFlush(supervisor);
 
             // Sync Base Profile to local Redis
-            syncUserToRedis(supervisorProfile, Role.DRIVER);
+            syncUserToRedis(supervisorProfile, supervisor, Role.SUPERVISOR);
 
             publishSuccessEvent(request, EventType.CREATE);
 
@@ -115,6 +116,7 @@ public class SupervisorServiceImpl implements SupervisorService {
             dbSupervisor.setCnic(updateRequest.getCnic());
         }
         if (updateRequest.getTehsilId() != null) dbSupervisor.setTehsilId(updateRequest.getTehsilId());
+        if (updateRequest.getYardId() != null) dbSupervisor.setYardId(updateRequest.getYardId());
         if (updateRequest.getGender() != null) dbSupervisor.setGender(updateRequest.getGender());
         if (updateRequest.getAddress() != null) dbSupervisor.setAddress(updateRequest.getAddress());
         if (updateRequest.getDob() != null) dbSupervisor.setDob(updateRequest.getDob());
@@ -122,6 +124,8 @@ public class SupervisorServiceImpl implements SupervisorService {
         try {
             supervisorRepository.save(dbSupervisor);
             profileRepository.save(dbUser);
+
+            syncUserToRedis(dbUser, dbSupervisor, Role.SUPERVISOR);
 
             publishSuccessEvent(updateRequest, EventType.UPDATE);
         } catch (Exception e) {
@@ -144,8 +148,8 @@ public class SupervisorServiceImpl implements SupervisorService {
         return ResponseConversion.toSupervisorResponse(username, role, dbUser, dbSupervisor);
     }
 
-    // --- Updated Redis Sync Helper (Driver Service) ---
-    private void syncUserToRedis(UsersProfile profile, Role role) {
+    // --- Updated Redis Sync Helper (Option 2) ---
+    private void syncUserToRedis(UsersProfile profile, Supervisor supervisor, Role role) {
         String redisKey = "wtms:user:" + profile.getId();
         Map<String, Object> cacheData = new HashMap<>();
 
@@ -153,24 +157,25 @@ public class SupervisorServiceImpl implements SupervisorService {
         cacheData.put("name", profile.getName());
         cacheData.put("email", profile.getEmail());
         cacheData.put("phoneNo", profile.getPhoneNo());
-        cacheData.put("status", profile.getStatus().name());
+        cacheData.put("status", profile.getStatus() != null ? profile.getStatus().name() : "");
         cacheData.put("role", role.name());
 
-        // 2. Pack the specific Driver Data (Because we linked them, getDriver() works!)
-        if (profile.getSupervisor() != null) {
-            Supervisor supervisor = profile.getSupervisor();
-
+        // 2. Pack the specific Supervisor Data directly from the passed object
+        if (supervisor != null) {
             cacheData.put("fatherName", supervisor.getFatherName());
             cacheData.put("cnic", supervisor.getCnic());
             cacheData.put("gender", supervisor.getGender());
             cacheData.put("address", supervisor.getAddress());
 
-            // Remember to convert Dates to Strings for Redis safety!
+            // Convert Dates and UUIDs to Strings for Redis safety
             cacheData.put("dob", supervisor.getDob() != null ? supervisor.getDob().toString() : "");
-            cacheData.put("tehsilId", supervisor.getTehsilId().toString());
+            cacheData.put("tehsilId", supervisor.getTehsilId() != null ? supervisor.getTehsilId().toString() : "");
+
+            // Adding yardId as well since it's part of your Supervisor entity
+            cacheData.put("yardId", supervisor.getYardId() != null ? supervisor.getYardId().toString() : "");
         }
 
-        // 3. Save the giant, combined map to Redis
+        // 3. Save the combined map to Redis
         redisTemplate.opsForHash().putAll(redisKey, cacheData);
     }
 

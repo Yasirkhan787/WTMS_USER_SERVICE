@@ -20,6 +20,8 @@ public class Driver {
     @Id
     private UUID id;
 
+    private UUID tehsilId;
+
     @Column(nullable = false)
     private String fatherName;
 

@@ -95,6 +95,7 @@ public class ResponseConversion {
                     .dob(profile.getDriver().getDob())
                     .gender(profile.getDriver().getGender())
                     .address(profile.getDriver().getAddress())
+                    .tehsilId(profile.getDriver().getTehsilId())
                     .build());
         } else if (profile.getSupervisor() != null) {
             builder.role("SUPERVISOR");
@@ -104,6 +105,8 @@ public class ResponseConversion {
                     .gender(profile.getSupervisor().getGender())
                     .dob(profile.getSupervisor().getDob())
                     .address(profile.getSupervisor().getAddress())
+                    .tehsilId(profile.getSupervisor().getTehsilId())
+                    .yardId(profile.getSupervisor().getYardId())
                     .build());
         } else {
             builder.role("ADMIN");

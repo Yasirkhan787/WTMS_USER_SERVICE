@@ -36,6 +36,8 @@ public class Supervisor {
 
     private UUID tehsilId;
 
+    private UUID yardId;
+
     @OneToOne()
     @MapsId
     @JoinColumn(name = "id")

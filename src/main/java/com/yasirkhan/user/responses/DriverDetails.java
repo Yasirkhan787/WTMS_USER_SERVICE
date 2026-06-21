@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 // These DTOs capture the detailed fields from your Relational Models
 @Data
@@ -20,4 +21,5 @@ public class DriverDetails {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate licenseExpiry;
     private String licenseStatus;
+    private UUID tehsilId;
 }
