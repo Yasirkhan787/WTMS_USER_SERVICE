@@ -24,11 +24,14 @@ public class TehsilResponseEventDto {
 
     private String tehsilName;
 
+    private String status;
+
     @JsonProperty("tehsilData")
     private void unpackNestedRouteData(Map<String, Object> tehsilData) {
         if (tehsilData != null) {
             this.tehsilId = UUID.fromString((String) tehsilData.get("tehsilId"));
             this.tehsilName = (String) tehsilData.get("tehsilName");
+            this.status = (String) tehsilData.get("status");
         }
     }
 }
