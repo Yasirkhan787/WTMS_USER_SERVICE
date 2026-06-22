@@ -31,6 +31,7 @@ public class TehsilResponseEventConsumer {
 
             Map<String, Object> map = new HashMap<>();
             map.put("tehsilName",event.getTehsilName());
+            map.put("status",event.getStatus());
             // Save Hash to Redis
             String redisKey = "wtms:yard:" + tehsilId;
             redisTemplate.opsForHash().putAll(redisKey, map);
