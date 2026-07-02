@@ -110,7 +110,7 @@ public class AdminServiceImpl implements AdminService {
 
     private void publishSuccessEvent(UsersProfile sourceData, EventType type) {
         UserEventDto adminData = UserEventDto.builder()
-                .userId(sourceData.getId()) // BUG FIXED: SAGA needs this ID to unlock auth!
+                .userId(sourceData.getId())
                 .name(sourceData.getName())
                 .email(sourceData.getEmail())
                 .phoneNo(sourceData.getPhoneNo())

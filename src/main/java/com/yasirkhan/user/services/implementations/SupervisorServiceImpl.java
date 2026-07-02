@@ -75,7 +75,6 @@ public class SupervisorServiceImpl implements SupervisorService {
 
             supervisorRepository.saveAndFlush(supervisor);
 
-            // Sync Base Profile to local Redis
             syncUserToRedis(supervisorProfile, supervisor, Role.SUPERVISOR);
 
             publishSuccessEvent(request, EventType.CREATE);
@@ -148,34 +147,27 @@ public class SupervisorServiceImpl implements SupervisorService {
         return ResponseConversion.toSupervisorResponse(username, role, dbUser, dbSupervisor);
     }
 
-    // --- Updated Redis Sync Helper (Option 2) ---
+    // --- Redis Sync Helper  ---
     private void syncUserToRedis(UsersProfile profile, Supervisor supervisor, Role role) {
         String redisKey = "wtms:user:" + profile.getId();
         Map<String, Object> cacheData = new HashMap<>();
 
-        // 1. Pack the standard Profile Data
         cacheData.put("name", profile.getName());
         cacheData.put("email", profile.getEmail());
         cacheData.put("phoneNo", profile.getPhoneNo());
         cacheData.put("status", profile.getStatus() != null ? profile.getStatus().name() : "");
         cacheData.put("role", role.name());
 
-        // 2. Pack the specific Supervisor Data directly from the passed object
         if (supervisor != null) {
             cacheData.put("fatherName", supervisor.getFatherName());
             cacheData.put("cnic", supervisor.getCnic());
             cacheData.put("gender", supervisor.getGender());
             cacheData.put("address", supervisor.getAddress());
-
-            // Convert Dates and UUIDs to Strings for Redis safety
             cacheData.put("dob", supervisor.getDob() != null ? supervisor.getDob().toString() : "");
             cacheData.put("tehsilId", supervisor.getTehsilId() != null ? supervisor.getTehsilId().toString() : "");
-
-            // Adding yardId as well since it's part of your Supervisor entity
             cacheData.put("yardId", supervisor.getYardId() != null ? supervisor.getYardId().toString() : "");
         }
 
-        // 3. Save the combined map to Redis
         redisTemplate.opsForHash().putAll(redisKey, cacheData);
     }
 
@@ -195,6 +187,7 @@ public class SupervisorServiceImpl implements SupervisorService {
                 .phoneNo(sourceData.getPhoneNo())
                 .role(Role.SUPERVISOR)
                 .tehsilId(sourceData.getTehsilId())
+                .yardId(sourceData.getYardId())
                 .status(Status.ACTIVE.name())
                 .build();
 

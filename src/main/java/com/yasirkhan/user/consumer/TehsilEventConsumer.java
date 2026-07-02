@@ -11,11 +11,11 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
-public class TehsilResponseEventConsumer {
+public class TehsilEventConsumer {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public TehsilResponseEventConsumer(RedisTemplate<String, Object> redisTemplate) {
+    public TehsilEventConsumer(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -32,8 +32,8 @@ public class TehsilResponseEventConsumer {
             Map<String, Object> map = new HashMap<>();
             map.put("tehsilName",event.getTehsilName());
             map.put("status",event.getStatus());
-            // Save Hash to Redis
-            String redisKey = "wtms:yard:" + tehsilId;
+
+            String redisKey = "wtms:tehsil:" + tehsilId;
             redisTemplate.opsForHash().putAll(redisKey, map);
         }
     }

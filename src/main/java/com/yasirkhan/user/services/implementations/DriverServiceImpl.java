@@ -74,10 +74,8 @@ public class DriverServiceImpl implements DriverService {
 
             driverRepository.saveAndFlush(driver);
 
-            // Sync Base Profile to local Redis
             syncUserToRedis(driverProfile, driver, Role.DRIVER);
 
-            // Broadcast success back to Auth Service SAGA
             publishSuccessEvent(request, EventType.CREATE);
 
         } catch (Exception e) {
@@ -158,33 +156,28 @@ public class DriverServiceImpl implements DriverService {
         return ResponseConversion.toDriverResponse(username, role, dbUser, dbDriver);
     }
 
-    // --- Updated Redis Sync Helper (Option 2) ---
+    // --- Redis Sync Helper  ---
     private void syncUserToRedis(UsersProfile profile, Driver driver, Role role) {
         String redisKey = "wtms:user:" + profile.getId();
         Map<String, Object> cacheData = new HashMap<>();
 
-        // 1. Pack the standard Profile Data
         cacheData.put("name", profile.getName());
         cacheData.put("email", profile.getEmail());
         cacheData.put("phoneNo", profile.getPhoneNo());
         cacheData.put("status", profile.getStatus() != null ? profile.getStatus().name() : "");
         cacheData.put("role", role.name());
 
-        // 2. Pack the specific Driver Data directly from the passed object
         if (driver != null) {
             cacheData.put("fatherName", driver.getFatherName());
             cacheData.put("cnic", driver.getCnic());
             cacheData.put("gender", driver.getGender());
             cacheData.put("address", driver.getAddress());
             cacheData.put("licenseNo", driver.getLicenseNo());
-
-            // Convert Dates to Strings for Redis safety
             cacheData.put("dob", driver.getDob() != null ? driver.getDob().toString() : "");
             cacheData.put("licenseExpiry", driver.getLicenseExpiry() != null ? driver.getLicenseExpiry().toString() : "");
             cacheData.put("tehsilId", driver.getTehsilId() != null ? driver.getTehsilId().toString() : "");
         }
 
-        // 3. Save the combined map to Redis
         redisTemplate.opsForHash().putAll(redisKey, cacheData);
     }
 
@@ -218,6 +211,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     private void publishFailureEvent(UserEventDto sourceData, EventType type, String reason) {
+
         System.err.println("Driver Event Failed: " + reason);
 
         UserEventDto payloadData = UserEventDto.builder()

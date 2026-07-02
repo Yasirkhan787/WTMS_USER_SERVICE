@@ -1,4 +1,4 @@
-package com.yasirkhan.user.listeners;
+package com.yasirkhan.user.listener;
 
 import com.yasirkhan.user.models.dtos.UserStatusEventDto;
 import com.yasirkhan.user.producer.UserEventProducer;
@@ -10,10 +10,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class UserEventListener {
 
     private final UserEventProducer producer;
+
+    public UserEventListener(UserEventProducer producer) {
+        this.producer = producer;
+    }
 
     // Only fire SUCCESS if the DB actually committed the new profile
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, condition = "#eventDto.eventTypeStatus.name() == 'SUCCESS'")

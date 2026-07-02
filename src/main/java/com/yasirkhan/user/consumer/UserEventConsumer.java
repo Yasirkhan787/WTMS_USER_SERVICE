@@ -2,10 +2,8 @@ package com.yasirkhan.user.consumer;
 
 import com.yasirkhan.user.models.dtos.UserEventDto;
 import com.yasirkhan.user.models.dtos.UserStatusEventDto;
-import com.yasirkhan.user.models.enums.EventStatus;
 import com.yasirkhan.user.models.enums.EventType;
 import com.yasirkhan.user.models.enums.Status;
-import com.yasirkhan.user.repositories.UserProfileRepository;
 import com.yasirkhan.user.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -16,12 +14,11 @@ import org.springframework.stereotype.Component;
 public class UserEventConsumer {
 
     private final UserService userService;
-    private final UserProfileRepository profileRepository;
 
-    public UserEventConsumer(UserService userService, UserProfileRepository profileRepository) {
+    public UserEventConsumer(UserService userService) {
         this.userService = userService;
-        this.profileRepository = profileRepository;
     }
+
 
     @KafkaListener(
             topics = "user-created-topic",

@@ -92,7 +92,6 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public List<UserResponse> getAllDrivers() {
 
-        // Returns a populated list, or an empty list [] if no drivers exist
         List<UsersProfile> drivers = profileRepository.findAllDrivers();
 
         return drivers
@@ -133,7 +132,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private String getTehsilName(UUID tehsilId) {
-        String key =  "wtms:tehsils:" + tehsilId;
+        String key =  "wtms:tehsil:" + tehsilId;
        return (String) redisTemplate.opsForHash().get(key, "tehsilName");
     }
 }
